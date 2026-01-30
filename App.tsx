@@ -8,6 +8,7 @@ import Projects from './pages/Projects.tsx';
 import ProjectDetail from './pages/ProjectDetail.tsx';
 import About from './pages/About.tsx';
 import Contact from './pages/Contact.tsx';
+import Gallery from './pages/Gallery.tsx';
 import ChatBot from './components/ChatBot.tsx';
 
 // Admin Pages
@@ -15,9 +16,11 @@ import AdminLogin from './pages/admin/Login.tsx';
 import AdminDashboard from './pages/admin/Dashboard.tsx';
 import AdminProjectForm from './pages/admin/ProjectForm.tsx';
 import AdminContentEditor from './pages/admin/ContentEditor.tsx';
+import AdminMediaGallery from './pages/admin/MediaGallery.tsx';
 import { DataProvider, useData } from './context/DataContext.tsx';
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+// Fix: Use React.FC with explicit children property to satisfy TypeScript requirements
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAdmin } = useData();
   return isAdmin ? <>{children}</> : <Navigate to="/admin/login" />;
 };
@@ -30,7 +33,8 @@ const ScrollToTop: React.FC = () => {
   return null;
 };
 
-const MainLayout = ({ children }: { children: React.ReactNode }) => {
+// Fix: Use React.FC with explicit children property to satisfy TypeScript requirements
+const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
 
@@ -59,6 +63,7 @@ const App: React.FC = () => {
             <Route path="/projects/:id" element={<ProjectDetail />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/gallery" element={<Gallery />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />
@@ -80,6 +85,11 @@ const App: React.FC = () => {
             <Route path="/admin/content" element={
               <ProtectedRoute>
                 <AdminContentEditor />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/media" element={
+              <ProtectedRoute>
+                <AdminMediaGallery />
               </ProtectedRoute>
             } />
 

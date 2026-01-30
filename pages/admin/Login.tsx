@@ -42,7 +42,7 @@ const Login: React.FC = () => {
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter password (try admin123)"
+                placeholder="Enter password"
                 className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-amber-500 text-white transition-all"
               />
             </div>

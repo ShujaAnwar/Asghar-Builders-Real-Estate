@@ -2,34 +2,42 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useData } from '../../context/DataContext.tsx';
-import { Project, ProjectStatus, ProjectType } from '../../types.ts';
-// Fix: Added missing FileText import from lucide-react
-import { ArrowLeft, Save, X, Plus, Info, Image as ImageIcon, FileText } from 'lucide-react';
+import { Project, ProjectStatus, ProjectType, SEOData } from '../../types.ts';
+import { ArrowLeft, Save, X, Plus, Info, Image as ImageIcon, FileText, Globe, Eye } from 'lucide-react';
 
 const AMENITIES_LIST = [
   'Smart Home Automation', 'Infinity Pool', '24/7 Security', 'Private Elevator Access',
-  'Gymnasium', 'Roof Garden', 'CCTV Monitoring', 'Gas & Electricity', 'Car Parking'
+  'Gymnasium', 'Roof Garden', 'CCTV Monitoring', 'Gas & Electricity', 'Car Parking',
+  'Power Backup', 'Guest Lounge', 'Kids Play Area', 'High-Speed Internet'
 ];
 
 const ProjectForm: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, setProjects } = useData();
+  const { projects, setProjects, media } = useData();
   const isEditing = !!id;
 
   const [formData, setFormData] = useState<Partial<Project>>({
     name: '',
+    slug: '',
     location: '',
     type: ProjectType.RESIDENTIAL,
     status: ProjectStatus.RUNNING,
     description: '',
     longDescription: '',
-    imageUrl: 'https://picsum.photos/seed/new-project/1200/800',
+    imageUrl: '',
     gallery: [],
     features: [],
     specs: [{ label: 'Plot Size', value: '' }, { label: 'Completion', value: '' }],
-    paymentPlan: ''
+    paymentPlan: '',
+    seo: {
+      title: '',
+      description: '',
+      keywords: ''
+    }
   });
+
+  const [activeTab, setActiveTab] = useState<'content' | 'media' | 'seo'>('content');
 
   useEffect(() => {
     if (isEditing) {
@@ -38,17 +46,22 @@ const ProjectForm: React.FC = () => {
     }
   }, [id, projects]);
 
+  const handleNameChange = (val: string) => {
+    const slug = val.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+    setFormData({ ...formData, name: val, slug: isEditing ? formData.slug : slug });
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const projectData = {
       ...formData,
-      id: isEditing ? (id as string) : formData.name?.toLowerCase().replace(/\s+/g, '-'),
+      id: isEditing ? (id as string) : (formData.slug || Date.now().toString()),
     } as Project;
 
     if (isEditing) {
       setProjects(prev => prev.map(p => p.id === id ? projectData : p));
     } else {
-      setProjects(prev => [...prev, projectData]);
+      setProjects(prev => [projectData, ...prev]);
     }
     navigate('/admin');
   };
@@ -62,146 +75,236 @@ const ProjectForm: React.FC = () => {
     }
   };
 
+  const handleSEOChange = (field: keyof SEOData, val: string) => {
+    setFormData({
+      ...formData,
+      seo: { ...formData.seo, [field]: val } as SEOData
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 pt-32 pb-24 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <Link to="/admin" className="inline-flex items-center text-gray-500 hover:text-white mb-8 transition-colors">
           <ArrowLeft size={18} className="mr-2" />
-          Back to Dashboard
+          Dashboard Overview
         </Link>
 
-        <header className="mb-12">
-          <h1 className="text-4xl font-black text-white">{isEditing ? 'Edit Project' : 'Add New Project'}</h1>
-          <p className="text-gray-500 mt-2">Provide detailed information for the investors.</p>
+        <header className="flex justify-between items-end mb-12">
+          <div>
+            <h1 className="text-5xl font-black text-white">{isEditing ? 'Modify Project' : 'New Landmark'}</h1>
+            <p className="text-gray-500 mt-2">Craft the perfect presentation for your elite development.</p>
+          </div>
+          <div className="hidden md:flex bg-white/5 border border-white/10 p-1 rounded-2xl">
+            {(['content', 'media', 'seo'] as const).map(tab => (
+              <button 
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-8 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-amber-500 text-white' : 'text-gray-500 hover:text-white'}`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </header>
 
         <form onSubmit={handleSubmit} className="space-y-12">
-          {/* General Info */}
-          <div className="glass p-8 md:p-12 rounded-[2.5rem] border border-white/10 space-y-8">
-            <div className="flex items-center space-x-3 text-amber-500 mb-4">
-              <Info size={20} />
-              <h3 className="font-bold uppercase tracking-widest text-sm">General Information</h3>
-            </div>
-            
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Project Name</label>
-                <input 
-                  required
-                  value={formData.name}
-                  onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-                  placeholder="e.g. Asghar Royal Residency"
-                />
+          {activeTab === 'content' && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+              {/* Identity */}
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <div className="flex items-center space-x-3 text-amber-500">
+                  <Info size={24} />
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Identity & Vision</h3>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Project Title</label>
+                    <input 
+                      required
+                      value={formData.name}
+                      onChange={e => handleNameChange(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-amber-500 text-white transition-all shadow-inner"
+                      placeholder="e.g. Asghar Royal Heights"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">URL Slug</label>
+                    <input 
+                      required
+                      value={formData.slug}
+                      onChange={e => setFormData({ ...formData, slug: e.target.value })}
+                      className="w-full bg-slate-900 border border-white/10 rounded-2xl py-5 px-8 text-gray-500 transition-all font-mono text-sm"
+                      placeholder="asghar-royal-heights"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-10">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Category</label>
+                    <select 
+                      value={formData.type}
+                      onChange={e => setFormData({ ...formData, type: e.target.value as ProjectType })}
+                      className="w-full bg-slate-900 border border-white/10 rounded-2xl py-5 px-8 text-white appearance-none"
+                    >
+                      {Object.values(ProjectType).map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Lifecycle Status</label>
+                    <select 
+                      value={formData.status}
+                      onChange={e => setFormData({ ...formData, status: e.target.value as ProjectStatus })}
+                      className="w-full bg-slate-900 border border-white/10 rounded-2xl py-5 px-8 text-white appearance-none"
+                    >
+                      {Object.values(ProjectStatus).map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Location</label>
+                    <input 
+                      required
+                      value={formData.location}
+                      onChange={e => setFormData({ ...formData, location: e.target.value })}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
+                      placeholder="DHA Phase 6, Lahore"
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Location</label>
-                <input 
-                  required
-                  value={formData.location}
-                  onChange={e => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-                  placeholder="e.g. Gulberg, Lahore"
-                />
-              </div>
-            </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Type</label>
-                <select 
-                  value={formData.type}
-                  onChange={e => setFormData({ ...formData, type: e.target.value as ProjectType })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-                >
-                  {Object.values(ProjectType).map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Status</label>
-                <select 
-                  value={formData.status}
-                  onChange={e => setFormData({ ...formData, status: e.target.value as ProjectStatus })}
-                  className="w-full bg-slate-900 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-                >
-                  {Object.values(ProjectStatus).map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            </div>
+              {/* Narratives */}
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <div className="flex items-center space-x-3 text-amber-500">
+                  <FileText size={24} />
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Strategic Narratives</h3>
+                </div>
+                
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Executive Summary</label>
+                  <textarea 
+                    rows={2}
+                    value={formData.description}
+                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white resize-none"
+                    placeholder="Brief 1-2 sentence hook for project cards."
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Thumbnail URL</label>
-              <input 
-                value={formData.imageUrl}
-                onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          {/* Details */}
-          <div className="glass p-8 md:p-12 rounded-[2.5rem] border border-white/10 space-y-8">
-            <div className="flex items-center space-x-3 text-amber-500 mb-4">
-              <FileText size={20} />
-              <h3 className="font-bold uppercase tracking-widest text-sm">Detailed Description</h3>
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Short Summary (For Card)</label>
-              <textarea 
-                rows={2}
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Full Story</label>
-              <textarea 
-                rows={6}
-                value={formData.longDescription}
-                onChange={e => setFormData({ ...formData, longDescription: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
-              />
-            </div>
-
-            <div className="space-y-4">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-widest px-1">Amenities</label>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {AMENITIES_LIST.map(a => (
-                  <button
-                    type="button"
-                    key={a}
-                    onClick={() => toggleAmenity(a)}
-                    className={`p-3 rounded-xl border text-sm transition-all text-left ${
-                      formData.features?.includes(a) 
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-400' 
-                      : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'
-                    }`}
-                  >
-                    {a}
-                  </button>
-                ))}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Detailed Presentation</label>
+                  <textarea 
+                    rows={8}
+                    value={formData.longDescription}
+                    onChange={e => setFormData({ ...formData, longDescription: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white leading-relaxed"
+                    placeholder="Full story, structural highlights, and value proposition."
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="flex space-x-4">
+          {activeTab === 'media' && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <div className="flex items-center space-x-3 text-amber-500">
+                  <ImageIcon size={24} />
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Visual Assets</h3>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Master Thumbnail URL</label>
+                    <div className="flex gap-4">
+                      <input 
+                        value={formData.imageUrl}
+                        onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                        className="flex-grow bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
+                        placeholder="https://..."
+                      />
+                      {formData.imageUrl && <img src={formData.imageUrl} className="w-20 h-20 rounded-xl object-cover" />}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Gallery Stack (New lines for multiple URLs)</label>
+                    <textarea 
+                      rows={6}
+                      value={formData.gallery?.join('\n')}
+                      onChange={e => setFormData({ ...formData, gallery: e.target.value.split('\n').filter(l => l.trim()) })}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white font-mono text-xs"
+                      placeholder="Paste one image URL per line..."
+                    />
+                  </div>
+                </div>
+                
+                <div className="bg-white/5 p-6 rounded-2xl flex items-center justify-between border border-white/5">
+                   <div className="text-sm text-gray-500">Need to upload new images?</div>
+                   <Link to="/admin/media" className="text-amber-500 font-bold hover:underline">Open Media Library &rarr;</Link>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'seo' && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <div className="flex items-center space-x-3 text-amber-500">
+                  <Globe size={24} />
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Search Optimization (SEO)</h3>
+                </div>
+
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Meta Title</label>
+                    <input 
+                      value={formData.seo?.title}
+                      onChange={e => handleSEOChange('title', e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
+                      placeholder="Best Luxury Apartments in Lahore | Asghar Builders"
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Meta Description</label>
+                    <textarea 
+                      rows={3}
+                      value={formData.seo?.description}
+                      onChange={e => handleSEOChange('description', e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
+                      placeholder="Discover our latest residential project featuring..."
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Meta Keywords</label>
+                    <input 
+                      value={formData.seo?.keywords}
+                      onChange={e => handleSEOChange('keywords', e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
+                      placeholder="real estate, apartments, investment"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-6">
              <button 
                type="submit" 
-               className="flex-grow py-5 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl shadow-xl shadow-amber-500/20 flex items-center justify-center space-x-2 transition-all transform hover:scale-[1.01]"
+               className="flex-grow py-6 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-[2rem] shadow-2xl shadow-amber-500/20 flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] text-xl"
              >
-                <Save size={20} />
-                <span>{isEditing ? 'Update Project' : 'Publish Project'}</span>
+                <Save size={24} />
+                <span>{isEditing ? 'Commit Changes' : 'Publish Landmark'}</span>
              </button>
              <button 
                type="button" 
                onClick={() => navigate('/admin')}
-               className="px-8 py-5 glass text-gray-400 font-bold rounded-2xl border border-white/10 hover:bg-red-500/10 hover:text-red-500 transition-all"
+               className="px-12 py-6 glass text-gray-400 font-black rounded-[2rem] border border-white/10 hover:bg-red-500/10 hover:text-red-500 transition-all uppercase tracking-widest text-sm"
              >
-                Discard
+                Cancel
              </button>
           </div>
         </form>

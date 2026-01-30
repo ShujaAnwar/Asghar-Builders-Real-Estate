@@ -12,6 +12,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'asghar-skyline',
     name: 'Asghar Skyline Heights',
+    slug: 'asghar-skyline-heights',
     location: 'Gulberg Greens, Islamabad',
     status: ProjectStatus.RUNNING,
     type: ProjectType.RESIDENTIAL,
@@ -34,6 +35,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'emerald-plaza',
     name: 'Emerald Business Plaza',
+    slug: 'emerald-business-plaza',
     location: 'DHA Phase 6, Lahore',
     status: ProjectStatus.UPCOMING,
     type: ProjectType.COMMERCIAL,
@@ -55,6 +57,7 @@ export const PROJECTS: Project[] = [
   {
     id: 'asghar-villas',
     name: 'Asghar Grand Estates',
+    slug: 'asghar-grand-estates',
     location: 'Bahria Town Phase 8, Rawalpindi',
     status: ProjectStatus.RUNNING,
     type: ProjectType.RESIDENTIAL,

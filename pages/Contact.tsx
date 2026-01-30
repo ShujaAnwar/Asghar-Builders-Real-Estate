@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useData } from '../context/DataContext.tsx';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
@@ -136,7 +137,7 @@ const Contact: React.FC = () => {
             {/* Map Placeholder */}
             <div className="h-80 rounded-[3rem] overflow-hidden glass border border-white/10 shadow-2xl relative group">
                <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d108841.077218693!2d74.22554768393539!3d31.516335191599587!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3919045a28148381%3A0xc3485c290132c3f1!2sGulberg%2C%20Lahore%2C%20Punjab!5e0!3m2!1sen!2s!4v1714498302195!5m2!1sen!2s" 
+                src={siteContent.contact.mapEmbedUrl} 
                 className="w-full h-full grayscale opacity-60 group-hover:opacity-80 group-hover:grayscale-0 transition-all duration-700"
                 style={{ border: 0 }} 
                 allowFullScreen={true} 

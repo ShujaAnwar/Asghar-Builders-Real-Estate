@@ -5,18 +5,19 @@ import { useData } from '../../context/DataContext.tsx';
 import { 
   Plus, LayoutGrid, FileText, Settings, LogOut, 
   Trash2, Edit3, ExternalLink, Building2, BarChart3, 
-  Clock, CheckCircle, Rocket
+  Clock, CheckCircle, Rocket, Image as ImageIcon, 
+  Globe, ShieldCheck, TrendingUp
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { projects, setProjects, logout } = useData();
+  const { projects, setProjects, logout, media } = useData();
   const navigate = useNavigate();
 
   const stats = [
-    { label: 'Total Projects', value: projects.length, icon: <Building2 />, color: 'text-blue-400' },
-    { label: 'Ongoing', value: projects.filter(p => p.status === 'Running').length, icon: <Clock />, color: 'text-amber-400' },
-    { label: 'Upcoming', value: projects.filter(p => p.status === 'Upcoming').length, icon: <Rocket />, color: 'text-purple-400' },
-    { label: 'Completed', value: projects.filter(p => p.status === 'Completed').length, icon: <CheckCircle />, color: 'text-green-400' },
+    { label: 'Portfolio Items', value: projects.length, icon: <Building2 />, color: 'text-blue-400' },
+    { label: 'Media Assets', value: media.length, icon: <ImageIcon />, color: 'text-amber-400' },
+    { label: 'Active Builds', value: projects.filter(p => p.status === 'Running').length, icon: <Clock />, color: 'text-green-400' },
+    { label: 'Site Health', value: '100%', icon: <ShieldCheck />, color: 'text-purple-400' },
   ];
 
   const handleDelete = (id: string) => {
@@ -28,93 +29,121 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 flex">
       {/* Sidebar */}
-      <aside className="w-64 border-r border-white/5 bg-slate-900/50 hidden lg:flex flex-col">
+      <aside className="w-72 border-r border-white/5 bg-slate-900/50 hidden lg:flex flex-col">
         <div className="p-8">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-amber-500 rounded flex items-center justify-center">
-              <Building2 className="text-white" size={18} />
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+              <Building2 className="text-white" size={20} />
             </div>
-            <span className="text-xl font-extrabold text-white tracking-tighter">ASGHAR <span className="text-amber-500">CMS</span></span>
+            <span className="text-xl font-extrabold text-white tracking-tighter uppercase">Asghar <span className="text-amber-500">Panel</span></span>
           </div>
         </div>
 
-        <nav className="flex-grow px-4 space-y-2">
-          <Link to="/admin" className="flex items-center space-x-3 p-4 bg-amber-500/10 text-amber-500 rounded-xl font-bold">
+        <nav className="flex-grow px-6 space-y-2 mt-4">
+          <Link to="/admin" className="flex items-center space-x-3 p-4 bg-amber-500/10 text-amber-500 rounded-2xl font-bold">
             <LayoutGrid size={20} />
-            <span>Dashboard</span>
+            <span>Overview</span>
           </Link>
-          <Link to="/admin/content" className="flex items-center space-x-3 p-4 text-gray-400 hover:bg-white/5 rounded-xl transition-all">
-            <FileText size={20} />
-            <span>Site Content</span>
+          <Link to="/admin/projects/new" className="flex items-center space-x-3 p-4 text-gray-400 hover:bg-white/5 rounded-2xl transition-all">
+            <Plus size={20} />
+            <span>Add Project</span>
           </Link>
-          <button onClick={logout} className="w-full flex items-center space-x-3 p-4 text-red-400 hover:bg-red-500/10 rounded-xl transition-all mt-auto mb-8">
+          <Link to="/admin/media" className="flex items-center space-x-3 p-4 text-gray-400 hover:bg-white/5 rounded-2xl transition-all">
+            <ImageIcon size={20} />
+            <span>Media Library</span>
+          </Link>
+          <Link to="/admin/content" className="flex items-center space-x-3 p-4 text-gray-400 hover:bg-white/5 rounded-2xl transition-all">
+            <Globe size={20} />
+            <span>Site Editor</span>
+          </Link>
+          
+          <div className="pt-10 pb-4 px-4">
+            <span className="text-[10px] font-black uppercase text-gray-600 tracking-widest">Account</span>
+          </div>
+          <button onClick={logout} className="w-full flex items-center space-x-3 p-4 text-red-400 hover:bg-red-500/10 rounded-2xl transition-all">
             <LogOut size={20} />
             <span>Sign Out</span>
           </button>
         </nav>
+
+        <div className="p-8 border-t border-white/5">
+          <div className="text-xs text-gray-600 font-bold uppercase tracking-widest mb-2">Build v2.1.0</div>
+          <div className="text-gray-500 text-xs">Environment: Production</div>
+        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-grow p-4 md:p-12 overflow-y-auto">
         <div className="max-w-6xl mx-auto">
-          <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-4">
+          <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
             <div>
-              <h1 className="text-4xl font-black text-white">Project Management</h1>
-              <p className="text-gray-500 mt-2">Manage your real estate portfolio in real-time.</p>
+              <h1 className="text-4xl font-black text-white">Console Overview</h1>
+              <p className="text-gray-500 mt-2">Welcome back. Everything is running smoothly.</p>
             </div>
             <div className="flex space-x-4">
-               <Link to="/" className="p-3 glass rounded-xl text-gray-400 hover:text-white transition-all">
+               <Link to="/" target="_blank" className="p-4 glass rounded-2xl text-gray-400 hover:text-white transition-all flex items-center space-x-2">
                  <ExternalLink size={20} />
+                 <span className="font-bold text-sm">Live Site</span>
                </Link>
-               <Link to="/admin/projects/new" className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-amber-500/20">
+               <Link to="/admin/projects/new" className="flex items-center space-x-2 bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-2xl font-black shadow-2xl shadow-amber-500/20 transition-all transform hover:scale-[1.02]">
                  <Plus size={20} />
-                 <span>Add Project</span>
+                 <span>New Project</span>
                </Link>
             </div>
           </header>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
             {stats.map((stat, i) => (
-              <div key={i} className="glass p-6 rounded-3xl border border-white/10">
-                <div className={`${stat.color} mb-4`}>{stat.icon}</div>
-                <div className="text-3xl font-black text-white">{stat.value}</div>
-                <div className="text-sm font-bold text-gray-500 uppercase tracking-widest">{stat.label}</div>
+              <div key={i} className="glass p-8 rounded-[2rem] border border-white/10 relative overflow-hidden group hover:border-amber-500/30 transition-all">
+                <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  {React.cloneElement(stat.icon as React.ReactElement, { size: 100 })}
+                </div>
+                <div className={`${stat.color} mb-6`}>{stat.icon}</div>
+                <div className="text-4xl font-black text-white mb-1">{stat.value}</div>
+                <div className="text-xs font-black text-gray-500 uppercase tracking-[0.2em]">{stat.label}</div>
               </div>
             ))}
           </div>
 
-          {/* Project List */}
-          <div className="glass rounded-3xl border border-white/10 overflow-hidden">
-            <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/5">
-              <h3 className="text-lg font-bold text-white">All Projects</h3>
-              <div className="text-xs text-gray-500 font-bold uppercase tracking-widest">Sort by: Date Added</div>
+          {/* Recent Projects Table */}
+          <div className="glass rounded-[2.5rem] border border-white/10 overflow-hidden shadow-2xl">
+            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
+              <div>
+                <h3 className="text-xl font-bold text-white">Project Portfolio</h3>
+                <p className="text-gray-500 text-sm mt-1">Showing all currently listed projects.</p>
+              </div>
+              <div className="flex space-x-2">
+                <div className="px-4 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs font-bold text-gray-400">All Status</div>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-white/5">
-                    <th className="px-6 py-4">Project</th>
-                    <th className="px-6 py-4">Location</th>
-                    <th className="px-6 py-4">Status</th>
-                    <th className="px-6 py-4 text-right">Actions</th>
+                  <tr className="text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-white/5">
+                    <th className="px-8 py-6">Identity</th>
+                    <th className="px-8 py-6">Type</th>
+                    <th className="px-8 py-6">Current Status</th>
+                    <th className="px-8 py-6 text-right">Management</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {projects.map((p) => (
                     <tr key={p.id} className="hover:bg-white/5 transition-colors group">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <img src={p.imageUrl} className="w-12 h-12 rounded-lg object-cover border border-white/10" alt={p.name} />
+                      <td className="px-8 py-6">
+                        <div className="flex items-center space-x-5">
+                          <img src={p.imageUrl} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/10 group-hover:border-amber-500/50 transition-all" alt={p.name} />
                           <div>
-                            <div className="text-white font-bold">{p.name}</div>
-                            <div className="text-xs text-gray-500">{p.type}</div>
+                            <div className="text-white font-bold text-lg">{p.name}</div>
+                            <div className="text-xs text-gray-500 font-medium">{p.location}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">{p.location}</td>
-                      <td className="px-6 py-4">
-                        <span className={`text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-full border ${
+                      <td className="px-8 py-6">
+                         <span className="text-xs font-bold text-gray-400">{p.type}</span>
+                      </td>
+                      <td className="px-8 py-6">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm ${
                           p.status === 'Running' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
                           p.status === 'Upcoming' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
                           'bg-blue-500/10 text-blue-400 border-blue-500/20'
@@ -122,13 +151,13 @@ const Dashboard: React.FC = () => {
                           {p.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex justify-end space-x-2">
-                          <button onClick={() => navigate(`/admin/projects/edit/${p.id}`)} className="p-2 text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-lg transition-all">
-                            <Edit3 size={18} />
+                      <td className="px-8 py-6 text-right">
+                        <div className="flex justify-end space-x-3">
+                          <button onClick={() => navigate(`/admin/projects/edit/${p.id}`)} className="p-3 text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all">
+                            <Edit3 size={20} />
                           </button>
-                          <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
-                            <Trash2 size={18} />
+                          <button onClick={() => handleDelete(p.id)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                            <Trash2 size={20} />
                           </button>
                         </div>
                       </td>
@@ -137,11 +166,6 @@ const Dashboard: React.FC = () => {
                 </tbody>
               </table>
             </div>
-            {projects.length === 0 && (
-              <div className="p-12 text-center text-gray-500">
-                No projects found. Start by adding one!
-              </div>
-            )}
           </div>
         </div>
       </main>
