@@ -71,7 +71,7 @@ const Login: React.FC = () => {
           </div>
 
           {error && (
-            <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+            <div className="space-y-4">
               <div className="flex items-center space-x-2 text-red-400 text-sm bg-red-500/10 p-4 rounded-xl border border-red-500/20">
                 <AlertCircle size={16} className="shrink-0" />
                 <span className="font-bold">Error: {error}</span>
@@ -80,10 +80,10 @@ const Login: React.FC = () => {
               <div className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/10 space-y-2">
                 <div className="flex items-center space-x-2 text-blue-400 text-[10px] font-black uppercase tracking-widest">
                   <Info size={14} className="shrink-0" />
-                  <span>Troubleshooting Tip</span>
+                  <span>Troubleshooting</span>
                 </div>
                 <p className="text-gray-400 text-[11px] leading-relaxed italic">
-                  If the error says "Invalid login credentials" but your details are correct, ensure you have **confirmed your email** in the Supabase Dashboard > Authentication > Users tab.
+                  Check your API keys in index.html. Ensure the key starts with eyJ and that your storage bucket is named "projects".
                 </p>
                 <a 
                   href="https://supabase.com/dashboard" 

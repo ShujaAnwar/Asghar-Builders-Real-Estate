@@ -79,7 +79,7 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-// THIS NAME MUST MATCH THE BUCKET YOU CREATED
+// MANDATORY: This name must match your Supabase bucket EXACTLY (lowercase)
 const STORAGE_BUCKET = 'projects';
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -93,6 +93,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initData = async () => {
       setLoading(true);
       try {
+        console.log("Supabase URL Check:", SUPABASE_URL);
+        console.log("Key Check (First 5):", SUPABASE_ANON_KEY?.substring(0, 5));
+
         const { data: projectsData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
         if (projectsData) _setProjects(projectsData);
 
@@ -156,7 +159,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const uploadMedia = async (file: File) => {
     if (!isAdmin) {
-      alert("Please log in as an administrator.");
+      alert("Unauthorized: Please log in to the admin panel.");
       return null;
     }
 
@@ -164,9 +167,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const fileId = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     const isVideo = file.type.startsWith('video/') || ['mp4', 'webm'].includes(ext);
 
-    console.log(`[Upload Process] Sending file to bucket: "${STORAGE_BUCKET}" as path: "${fileId}"`);
-
     try {
+      // Attempt Upload
       const { data, error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
         .upload(fileId, file, { 
@@ -176,24 +178,27 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
       if (uploadError) {
-        console.error('[Supabase Error Object]', uploadError);
+        console.error('Upload Failed Details:', uploadError);
         
-        // If the status is 404, it means the bucket name is definitely wrong or the project doesn't have it
-        if (uploadError.message.includes('not found') || (uploadError as any).status === 404) {
-          alert(
-            `ERROR: Supabase says bucket "${STORAGE_BUCKET}" does not exist.\n\n` +
-            `1. Go to your Supabase project: ${SUPABASE_URL}\n` +
-            `2. Go to Storage > New Bucket.\n` +
-            `3. Name it EXACTLY: ${STORAGE_BUCKET}\n` +
-            `4. Make sure it is set to PUBLIC.\n` +
-            `5. Try again.`
-          );
+        const isNotFound = uploadError.message.includes('not found') || (uploadError as any).status === 404;
+        const isAuthError = uploadError.message.includes('permission') || uploadError.message.includes('row-level security');
+
+        if (isNotFound) {
+          alert(`CRITICAL ERROR: Bucket "${STORAGE_BUCKET}" not found.\n\n` +
+                `1. Open Supabase Dashboard.\n` +
+                `2. Go to Storage > New Bucket.\n` +
+                `3. Name it EXACTLY: ${STORAGE_BUCKET}\n` +
+                `4. Set it to PUBLIC.\n` +
+                `5. Double-check your API Key in index.html (it must start with 'eyJ').`);
+        } else if (isAuthError) {
+          alert("RLS ERROR: Your project is blocking the upload. Go to Storage > Policies and allow INSERT for authenticated users.");
         } else {
-          alert(`Upload failed: ${uploadError.message}`);
+          alert(`Error: ${uploadError.message}`);
         }
         return null;
       }
 
+      // Success
       const { data: { publicUrl } } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileId);
 
       const newItem: MediaItem = {
@@ -204,14 +209,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         tags: ['uploaded', ext]
       };
 
-      // Add to database registry
       await supabase.from('media').insert(newItem);
       _setMedia(prev => [newItem, ...prev]);
       
       return publicUrl;
     } catch (err: any) {
-      console.error('[System Fault]', err);
-      alert(`System error: ${err.message}`);
+      console.error('System Exception:', err);
+      alert(`Unexpected Error: ${err.message}`);
       return null;
     }
   };
