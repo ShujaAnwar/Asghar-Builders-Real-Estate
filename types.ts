@@ -26,13 +26,38 @@ export interface Project {
   longDescription: string;
   imageUrl: string;
   gallery: string[];
-  features: string[];
+  features: string[]; // Amenities
   specs: ProjectSpec[];
   paymentPlan?: string;
+  priceRange?: string;
+  completionDate?: string;
 }
 
 export interface Highlight {
   label: string;
   value: string;
   suffix: string;
+}
+
+export interface SiteContent {
+  home: {
+    heroTitle: string;
+    heroSubtitle: string;
+    ctaPrimary: string;
+    ctaSecondary: string;
+  };
+  about: {
+    intro: string;
+    description: string;
+    vision: string;
+    mission: string;
+    chairmanMessage: string;
+  };
+  contact: {
+    address: string;
+    phone: string;
+    phoneSecondary: string;
+    email: string;
+    whatsapp: string;
+  };
 }

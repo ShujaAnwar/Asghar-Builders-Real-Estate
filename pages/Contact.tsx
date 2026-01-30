@@ -1,14 +1,12 @@
 import React, { useEffect } from 'react';
+import { useData } from '../context/DataContext.tsx';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 
 const Contact: React.FC = () => {
+  const { siteContent } = useData();
+
   useEffect(() => {
     document.title = "Contact Us | Invest with Asghar Builders";
-    const description = "Contact our expert real estate consultants today. Inquire about luxury apartment bookings, commercial units, and flexible payment plans.";
-    const keywords = "contact asghar builders, real estate inquiry, investment advice, Lahore office, Islamabad property sales";
-    
-    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
-    document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -19,121 +17,132 @@ const Contact: React.FC = () => {
   return (
     <div className="pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-16 text-center">
-          <h1 className="text-5xl md:text-7xl font-black text-white mb-6">Get In <span className="text-amber-500">Touch</span></h1>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg leading-relaxed">
+        <div className="mb-20 text-center">
+          <h1 className="text-5xl md:text-8xl font-black text-white mb-6">Get In <span className="text-amber-500">Touch</span></h1>
+          <p className="text-gray-400 max-w-2xl mx-auto text-xl leading-relaxed">
             Have questions about a project? Our expert consultants are available 24/7 to help you make the right investment decision.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-16">
+        <div className="grid lg:grid-cols-2 gap-20">
           {/* Form */}
-          <div className="glass p-8 md:p-12 rounded-[2.5rem] border border-white/10">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid sm:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-400 px-1">Full Name</label>
+          <div className="glass p-8 md:p-16 rounded-[3.5rem] border border-white/10 shadow-2xl relative">
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-500/10 blur-3xl rounded-full"></div>
+            <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+              <div className="grid sm:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Full Name</label>
                   <input 
                     required
                     type="text" 
                     placeholder="John Doe"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-amber-500 text-white transition-all shadow-inner"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-bold text-gray-400 px-1">Phone Number</label>
+                <div className="space-y-3">
+                  <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Phone Number</label>
                   <input 
                     required
                     type="tel" 
                     placeholder="+92 3XX XXXXXXX"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-amber-500 text-white transition-all shadow-inner"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-400 px-1">Email Address</label>
+              <div className="space-y-3">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Email Address</label>
                 <input 
                   required
                   type="email" 
                   placeholder="john@example.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-amber-500 text-white transition-all shadow-inner"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-gray-400 px-1">Message</label>
+              <div className="space-y-3">
+                <label className="text-xs font-black text-gray-500 uppercase tracking-widest px-1">Message</label>
                 <textarea 
                   required
-                  rows={4}
+                  rows={5}
                   placeholder="I am interested in..."
-                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-6 focus:outline-none focus:border-amber-500 text-white transition-all resize-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-amber-500 text-white transition-all resize-none shadow-inner"
                 ></textarea>
               </div>
 
               <button 
                 type="submit"
-                className="w-full py-5 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-2 shadow-xl shadow-amber-500/20"
+                className="w-full py-6 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-2xl transition-all transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center space-x-3 shadow-2xl shadow-amber-500/30 text-lg"
               >
                 <span>Send Inquiry</span>
-                <Send size={18} />
+                <Send size={20} />
               </button>
             </form>
           </div>
 
           {/* Contact Info & Map */}
-          <div className="space-y-8">
-            <div className="grid sm:grid-cols-2 gap-6">
-              <div className="glass p-8 rounded-3xl border border-white/10">
-                <Phone className="text-amber-500 mb-4" size={24} />
-                <h4 className="text-white font-bold mb-2">Call Us</h4>
-                <p className="text-gray-400 text-sm">+92 (300) 123-4567</p>
-                <p className="text-gray-400 text-sm">+92 (42) 345-6789</p>
+          <div className="space-y-10">
+            <div className="grid sm:grid-cols-2 gap-8">
+              <div className="glass p-10 rounded-[2.5rem] border border-white/10 group hover:border-amber-500/20 transition-all">
+                <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 text-amber-500 group-hover:scale-110 transition-transform">
+                  <Phone size={24} />
+                </div>
+                <h4 className="text-white font-black text-xl mb-4">Call Us</h4>
+                <p className="text-gray-400 text-sm font-medium">{siteContent.contact.phone}</p>
+                <p className="text-gray-400 text-sm font-medium mt-1">{siteContent.contact.phoneSecondary}</p>
               </div>
-              <div className="glass p-8 rounded-3xl border border-white/10">
-                <Mail className="text-amber-500 mb-4" size={24} />
-                <h4 className="text-white font-bold mb-2">Email Us</h4>
-                <p className="text-gray-400 text-sm">sales@asgharbuilders.com</p>
-                <p className="text-gray-400 text-sm">info@asgharbuilders.com</p>
+              <div className="glass p-10 rounded-[2.5rem] border border-white/10 group hover:border-amber-500/20 transition-all">
+                <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-6 text-amber-500 group-hover:scale-110 transition-transform">
+                  <Mail size={24} />
+                </div>
+                <h4 className="text-white font-black text-xl mb-4">Email Us</h4>
+                <p className="text-gray-400 text-sm font-medium">{siteContent.contact.email}</p>
               </div>
             </div>
 
-            <div className="glass p-8 rounded-3xl border border-white/10 flex items-start space-x-4">
-              <MapPin className="text-amber-500 shrink-0" size={24} />
+            <div className="glass p-10 rounded-[2.5rem] border border-white/10 flex items-start space-x-6 group hover:border-amber-500/20 transition-all">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500 shrink-0 group-hover:scale-110 transition-transform">
+                <MapPin size={24} />
+              </div>
               <div>
-                <h4 className="text-white font-bold mb-2">Head Office</h4>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Suite 502, Platinum Tower, Gulberg III, Lahore, Pakistan.
+                <h4 className="text-white font-black text-xl mb-3">Head Office</h4>
+                <p className="text-gray-400 text-lg leading-relaxed">
+                  {siteContent.contact.address}
                 </p>
               </div>
             </div>
 
             {/* WhatsApp CTA */}
-            <div className="bg-green-600/10 border border-green-500/20 p-8 rounded-3xl flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white">
-                   <MessageSquare size={24} />
+            <a 
+              href={`https://wa.me/${siteContent.contact.whatsapp.replace(/\D/g, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-green-600/10 border border-green-500/20 p-10 rounded-[2.5rem] flex items-center justify-between group hover:bg-green-600/20 transition-all cursor-pointer"
+            >
+              <div className="flex items-center space-x-6">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center text-white shadow-lg shadow-green-500/40 group-hover:scale-110 transition-transform">
+                   <MessageSquare size={32} />
                 </div>
                 <div>
-                   <h4 className="text-white font-bold">Fast WhatsApp Chat</h4>
-                   <p className="text-green-400 text-sm font-medium">Response in &lt; 5 mins</p>
+                   <h4 className="text-white font-black text-2xl">Fast WhatsApp Chat</h4>
+                   <p className="text-green-400 font-bold tracking-widest text-xs uppercase mt-1">Response in &lt; 5 mins</p>
                 </div>
               </div>
-              <button className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full font-bold text-sm transition-all">
+              <div className="hidden sm:flex px-8 py-3 bg-green-500 text-white rounded-full font-black text-sm transition-all transform group-hover:scale-105">
                  Chat Now
-              </button>
-            </div>
+              </div>
+            </a>
 
             {/* Map Placeholder */}
-            <div className="h-64 rounded-[2rem] overflow-hidden glass border border-white/10">
+            <div className="h-80 rounded-[3rem] overflow-hidden glass border border-white/10 shadow-2xl relative group">
                <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d108841.077218693!2d74.22554768393539!3d31.516335191599587!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3919045a28148381%3A0xc3485c290132c3f1!2sGulberg%2C%20Lahore%2C%20Punjab!5e0!3m2!1sen!2s!4v1714498302195!5m2!1sen!2s" 
-                className="w-full h-full grayscale opacity-60"
+                className="w-full h-full grayscale opacity-60 group-hover:opacity-80 group-hover:grayscale-0 transition-all duration-700"
                 style={{ border: 0 }} 
                 allowFullScreen={true} 
-                loading="lazy" 
-                referrerPolicy="no-referrer-when-downgrade">
+                loading="lazy">
               </iframe>
+              <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/40 to-transparent"></div>
             </div>
           </div>
         </div>

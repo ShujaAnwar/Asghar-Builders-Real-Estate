@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from 'lucide-react';
+import { Building2, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin, Lock } from 'lucide-react';
 
 const Footer: React.FC = () => {
   return (
@@ -37,6 +37,12 @@ const Footer: React.FC = () => {
               <li><Link to="/projects" className="hover:text-amber-500 transition-colors">Our Projects</Link></li>
               <li><Link to="/about" className="hover:text-amber-500 transition-colors">About the Group</Link></li>
               <li><Link to="/contact" className="hover:text-amber-500 transition-colors">Contact Us</Link></li>
+              <li>
+                <Link to="/admin" className="hover:text-amber-500 transition-colors flex items-center space-x-2 mt-4 opacity-50 hover:opacity-100">
+                  <Lock size={12} />
+                  <span>Staff Portal</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
