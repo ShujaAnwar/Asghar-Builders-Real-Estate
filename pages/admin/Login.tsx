@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext.tsx';
-import { Building2, Lock, Mail, AlertCircle, Loader2 } from 'lucide-react';
+import { Building2, Lock, Mail, AlertCircle, Loader2, Info, ExternalLink } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -17,11 +17,11 @@ const Login: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    const success = await login(email, password);
-    if (success) {
+    const result = await login(email, password);
+    if (result.success) {
       navigate('/admin');
     } else {
-      setError('Authentication failed. Check your credentials.');
+      setError(result.message || 'Authentication failed. Please check your credentials.');
       setLoading(false);
     }
   };
@@ -71,9 +71,29 @@ const Login: React.FC = () => {
           </div>
 
           {error && (
-            <div className="flex items-center space-x-2 text-red-400 text-sm bg-red-500/10 p-4 rounded-xl border border-red-500/20 animate-in fade-in slide-in-from-top-2">
-              <AlertCircle size={16} />
-              <span>{error}</span>
+            <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center space-x-2 text-red-400 text-sm bg-red-500/10 p-4 rounded-xl border border-red-500/20">
+                <AlertCircle size={16} className="shrink-0" />
+                <span className="font-bold">Error: {error}</span>
+              </div>
+              
+              <div className="bg-blue-500/5 p-4 rounded-xl border border-blue-500/10 space-y-2">
+                <div className="flex items-center space-x-2 text-blue-400 text-[10px] font-black uppercase tracking-widest">
+                  <Info size={14} className="shrink-0" />
+                  <span>Troubleshooting Tip</span>
+                </div>
+                <p className="text-gray-400 text-[11px] leading-relaxed italic">
+                  If the error says "Invalid login credentials" but your details are correct, ensure you have **confirmed your email** in the Supabase Dashboard > Authentication > Users tab.
+                </p>
+                <a 
+                  href="https://supabase.com/dashboard" 
+                  target="_blank" 
+                  className="inline-flex items-center space-x-1 text-blue-400 hover:text-blue-300 text-[10px] font-bold"
+                >
+                  <span>Go to Supabase Dashboard</span>
+                  <ExternalLink size={10} />
+                </a>
+              </div>
             </div>
           )}
 

@@ -1,18 +1,13 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useData } from '../../context/DataContext.tsx';
-import { createClient } from '@supabase/supabase-js';
+import { useData, supabase } from '../../context/DataContext.tsx';
 import { 
   Plus, LayoutGrid, LogOut, 
   Trash2, Edit3, ExternalLink, Building2, 
-  ShieldCheck, Image as ImageIcon, 
+  ShieldCheck, ImageIcon, 
   Globe, Clock
 } from 'lucide-react';
-
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gjvgczueyvhifiollnsg.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_5H5Dcfo3wOwowyQkgDABRw_eBqkf6dk';
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const Dashboard: React.FC = () => {
   const { projects, setProjects, logout, media } = useData();
@@ -76,9 +71,9 @@ const Dashboard: React.FC = () => {
           </button>
         </nav>
 
-        <div className="p-8 border-t border-white/5">
+        <div className="p-8 border-t border-white/5 mt-auto">
           <div className="text-xs text-gray-600 font-bold uppercase tracking-widest mb-2">Supabase Linked</div>
-          <div className="text-gray-500 text-xs">gjvgczueyvhifiollnsg</div>
+          <div className="text-gray-500 text-[10px] truncate">gjvgczueyvhifiollnsg</div>
         </div>
       </aside>
 
@@ -107,7 +102,7 @@ const Dashboard: React.FC = () => {
             {stats.map((stat, i) => (
               <div key={i} className="glass p-8 rounded-[2rem] border border-white/10 relative overflow-hidden group hover:border-amber-500/30 transition-all">
                 <div className="absolute -right-4 -bottom-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                  {React.cloneElement(stat.icon as React.ReactElement, { size: 100 })}
+                  {stat.icon}
                 </div>
                 <div className={`${stat.color} mb-6`}>{stat.icon}</div>
                 <div className="text-4xl font-black text-white mb-1">{stat.value}</div>
@@ -135,41 +130,47 @@ const Dashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
-                  {projects.map((p) => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors group">
-                      <td className="px-8 py-6">
-                        <div className="flex items-center space-x-5">
-                          <img src={p.imageUrl} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/10 group-hover:border-amber-500/50 transition-all" alt={p.name} />
-                          <div>
-                            <div className="text-white font-bold text-lg">{p.name}</div>
-                            <div className="text-xs text-gray-500 font-medium">{p.location}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-8 py-6">
-                         <span className="text-xs font-bold text-gray-400">{p.type}</span>
-                      </td>
-                      <td className="px-8 py-6">
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm ${
-                          p.status === 'Running' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
-                          p.status === 'Upcoming' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
-                          'bg-blue-500/10 text-blue-400 border-blue-500/20'
-                        }`}>
-                          {p.status}
-                        </span>
-                      </td>
-                      <td className="px-8 py-6 text-right">
-                        <div className="flex justify-end space-x-3">
-                          <button onClick={() => navigate(`/admin/projects/edit/${p.id}`)} className="p-3 text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all">
-                            <Edit3 size={20} />
-                          </button>
-                          <button onClick={() => handleDelete(p.id)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
-                            <Trash2 size={20} />
-                          </button>
-                        </div>
-                      </td>
+                  {projects.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="px-8 py-20 text-center text-gray-500">No projects found in database.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    projects.map((p) => (
+                      <tr key={p.id} className="hover:bg-white/5 transition-colors group">
+                        <td className="px-8 py-6">
+                          <div className="flex items-center space-x-5">
+                            <img src={p.imageUrl || 'https://via.placeholder.com/150'} className="w-14 h-14 rounded-2xl object-cover border-2 border-white/10 group-hover:border-amber-500/50 transition-all" alt={p.name} />
+                            <div>
+                              <div className="text-white font-bold text-lg">{p.name}</div>
+                              <div className="text-xs text-gray-500 font-medium">{p.location}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                           <span className="text-xs font-bold text-gray-400">{p.type}</span>
+                        </td>
+                        <td className="px-8 py-6">
+                          <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full border shadow-sm ${
+                            p.status === 'Running' ? 'bg-green-500/10 text-green-400 border-green-500/20' : 
+                            p.status === 'Upcoming' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                            'bg-blue-500/10 text-blue-400 border-blue-500/20'
+                          }`}>
+                            {p.status}
+                          </span>
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                          <div className="flex justify-end space-x-3">
+                            <button onClick={() => navigate(`/admin/projects/edit/${p.id}`)} className="p-3 text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all">
+                              <Edit3 size={20} />
+                            </button>
+                            <button onClick={() => handleDelete(p.id)} className="p-3 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                              <Trash2 size={20} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>

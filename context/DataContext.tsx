@@ -1,13 +1,67 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { Project, SiteContent, MediaItem } from '../types.ts';
 
-// Fix: Access environment variables via process.env directly instead of window.process.env
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gjvgczueyvhifiollnsg.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_5H5Dcfo3wOwowyQkgDABRw_eBqkf6dk';
+const getEnv = (key: string) => {
+  return (window as any).process?.env?.[key] || (process.env as any)?.[key] || '';
+};
 
+const SUPABASE_URL = getEnv('SUPABASE_URL');
+const SUPABASE_ANON_KEY = getEnv('SUPABASE_ANON_KEY');
+
+// Initialize Supabase Client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const INITIAL_CONTENT: SiteContent = {
+  global: {
+    siteName: 'Asghar Builders',
+    logoUrl: '',
+    footerText: 'Building Trust. Creating Landmarks. Premium Real Estate Excellence.',
+    navigation: [
+      { label: 'Home', path: '/' },
+      { label: 'Projects', path: '/projects' },
+      { label: 'Gallery', path: '/gallery' },
+      { label: 'About', path: '/about' },
+      { label: 'Contact', path: '/contact' },
+    ],
+    socialLinks: { facebook: '', twitter: '', instagram: '', linkedin: '' }
+  },
+  home: {
+    heroTitle: 'Building Trust. Creating Landmarks.',
+    heroSubtitle: 'Karachi\'s premier luxury real estate and construction group, dedicated to architectural excellence and on-time delivery.',
+    heroBgUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070',
+    ctaPrimary: 'Explore Projects',
+    ctaSecondary: 'Contact Us',
+    highlights: [
+      { label: 'Years Experience', value: '25', suffix: '+' },
+      { label: 'Projects Delivered', value: '50', suffix: '' },
+      { label: 'Satisfied Families', value: '1000', suffix: '+' }
+    ],
+    whyUs: { title: 'Why Asghar Builders', items: [] },
+    seo: { title: 'Home | Asghar Builders', description: 'Premium Real Estate in Karachi', keywords: 'Karachi, Construction' }
+  },
+  about: {
+    intro: 'Asghar Builders has been at the forefront of Karachi\'s real estate transformation for over two decades.',
+    description: 'We specialize in high-end residential and commercial projects that define the city\'s skyline.',
+    vision: 'To be the most trusted name in luxury construction in Pakistan.',
+    mission: 'Delivering excellence through quality, transparency, and architectural innovation.',
+    chairmanName: 'M. Asghar',
+    chairmanRole: 'Founder & Chairman',
+    chairmanMessage: 'Our success is built on the trust of our clients and the integrity of our builds.',
+    chairmanImg: '',
+    seo: { title: 'About Us | Asghar Builders', description: 'Our Legacy', keywords: 'History, Team' }
+  },
+  contact: {
+    address: 'Suite 502, Platinum Tower, Gulberg III, Lahore / Karachi',
+    phone: '+92 300 1234567',
+    phoneSecondary: '+92 21 34567890',
+    email: 'info@asgharbuilders.com',
+    whatsapp: '+923001234567',
+    mapEmbedUrl: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3618.0617658925526!2d67.0658422!3d24.8144412!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33c8b41743f5f%3A0xb353381622f6d0a7!2sPlatinum%20Tower!5e0!3m2!1sen!2s!4v1711234567890!5m2!1sen!2s',
+    seo: { title: 'Contact | Invest with Us', description: 'Get in touch', keywords: 'Inquiry' }
+  }
+};
 
 interface DataContextType {
   projects: Project[];
@@ -18,18 +72,20 @@ interface DataContextType {
   setSiteContent: (content: SiteContent) => Promise<void>;
   isAdmin: boolean;
   loading: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => Promise<void>;
   uploadMedia: (file: File) => Promise<string | null>;
   deleteMedia: (id: string, url: string) => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
+// THIS NAME MUST MATCH THE BUCKET YOU CREATED
+const STORAGE_BUCKET = 'projects';
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [projects, _setProjects] = useState<Project[]>([]);
   const [media, _setMedia] = useState<MediaItem[]>([]);
-  const [siteContent, _setSiteContent] = useState<SiteContent | null>(null);
+  const [siteContent, _setSiteContent] = useState<SiteContent>(INITIAL_CONTENT);
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +100,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (mediaData) _setMedia(mediaData);
 
         const { data: contentData } = await supabase.from('site_content').select('*').single();
-        if (contentData) _setSiteContent(contentData.content);
+        if (contentData && contentData.content) {
+          _setSiteContent(contentData.content);
+        }
 
         const { data: { session } } = await supabase.auth.getSession();
         setIsAdmin(!!session);
@@ -78,18 +136,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setSiteContent = async (content: SiteContent) => {
     _setSiteContent(content);
-    const { error } = await supabase.from('site_content').upsert({ id: 1, content }).select();
-    if (error) console.error('Error saving content:', error);
+    await supabase.from('site_content').upsert({ id: 1, content });
   };
 
   const login = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       console.error('Login error:', error.message);
-      return false;
+      return { success: false, message: error.message };
     }
     setIsAdmin(true);
-    return true;
+    return { success: true };
   };
 
   const logout = async () => {
@@ -98,87 +155,80 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const uploadMedia = async (file: File) => {
-    // 1. Validation for desktop/PC users
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'image/gif'];
-    if (!validTypes.includes(file.type)) {
-      alert(`Unsupported file type: ${file.type}. Please use JPG, PNG, or WEBP.`);
+    if (!isAdmin) {
+      alert("Please log in as an administrator.");
       return null;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
-      alert("File is too large. Max size allowed is 10MB.");
-      return null;
-    }
+    const ext = file.name.split('.').pop()?.toLowerCase() || '';
+    const fileId = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+    const isVideo = file.type.startsWith('video/') || ['mp4', 'webm'].includes(ext);
 
-    // 2. Secure and Clean File Naming
-    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
-    const path = `uploads/${Date.now()}-${cleanFileName}`;
+    console.log(`[Upload Process] Sending file to bucket: "${STORAGE_BUCKET}" as path: "${fileId}"`);
 
     try {
-      const { data, error } = await supabase.storage
-        .from('project-media')
-        .upload(path, file, { 
+      const { data, error: uploadError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(fileId, file, { 
           cacheControl: '3600', 
           upsert: true,
-          contentType: file.type // Ensure correct MIME type is sent
+          contentType: file.type || 'image/jpeg'
         });
 
-      if (error) {
-        console.error('Supabase Storage Upload Error:', error);
-        alert(`Storage Error: ${error.message}`);
+      if (uploadError) {
+        console.error('[Supabase Error Object]', uploadError);
+        
+        // If the status is 404, it means the bucket name is definitely wrong or the project doesn't have it
+        if (uploadError.message.includes('not found') || (uploadError as any).status === 404) {
+          alert(
+            `ERROR: Supabase says bucket "${STORAGE_BUCKET}" does not exist.\n\n` +
+            `1. Go to your Supabase project: ${SUPABASE_URL}\n` +
+            `2. Go to Storage > New Bucket.\n` +
+            `3. Name it EXACTLY: ${STORAGE_BUCKET}\n` +
+            `4. Make sure it is set to PUBLIC.\n` +
+            `5. Try again.`
+          );
+        } else {
+          alert(`Upload failed: ${uploadError.message}`);
+        }
         return null;
       }
 
-      // 3. Get Public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('project-media')
-        .getPublicUrl(path);
+      const { data: { publicUrl } } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileId);
 
-      // 4. Record in Database
       const newItem: MediaItem = {
-        id: path,
+        id: fileId,
         url: publicUrl,
         name: file.name,
-        type: file.type.startsWith('video') ? 'video' : 'image',
-        tags: ['uploaded', 'pc-sync']
+        type: isVideo ? 'video' : 'image',
+        tags: ['uploaded', ext]
       };
 
-      const { error: dbError } = await supabase.from('media').insert(newItem);
-      if (dbError) {
-        console.error('Database Sync Error:', dbError);
-        // We still have the storage URL, so we can return it, but notify the admin
-      }
-
+      // Add to database registry
+      await supabase.from('media').insert(newItem);
       _setMedia(prev => [newItem, ...prev]);
+      
       return publicUrl;
-    } catch (err) {
-      console.error('Unexpected Upload Failure:', err);
-      alert('An unexpected error occurred during desktop upload.');
+    } catch (err: any) {
+      console.error('[System Fault]', err);
+      alert(`System error: ${err.message}`);
       return null;
     }
   };
 
   const deleteMedia = async (id: string, url: string) => {
-    const { error: storageError } = await supabase.storage
-      .from('project-media')
-      .remove([id]);
-
-    if (storageError) {
-      console.error('Storage deletion error:', storageError);
+    try {
+      await supabase.storage.from(STORAGE_BUCKET).remove([id]);
+      await supabase.from('media').delete().eq('id', id);
+      _setMedia(prev => prev.filter(m => m.id !== id));
+      return true;
+    } catch (err) {
+      console.error('Delete failed:', err);
       return false;
     }
-
-    const { error: dbError } = await supabase.from('media').delete().eq('id', id);
-    if (dbError) {
-      console.error('DB deletion error:', dbError);
-      return false;
-    }
-
-    _setMedia(prev => prev.filter(m => m.id !== id));
-    return true;
   };
 
-  if (loading || !siteContent) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="flex flex-col items-center space-y-4">
