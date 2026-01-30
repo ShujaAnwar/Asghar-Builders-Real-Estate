@@ -10,70 +10,89 @@ export const HIGHLIGHTS = [
 
 export const PROJECTS: Project[] = [
   {
-    id: 'asghar-skyline',
-    name: 'Asghar Skyline Heights',
-    slug: 'asghar-skyline-heights',
-    location: 'Gulberg Greens, Islamabad',
-    status: ProjectStatus.RUNNING,
-    type: ProjectType.RESIDENTIAL,
-    description: 'Ultra-luxury sky villas with panoramic views of the Margalla Hills.',
-    longDescription: 'Asghar Skyline Heights redefined vertical living in the heart of Islamabad. Featuring 40 floors of architectural excellence, this project offers smart apartments with integrated AI automation, rooftop infinity pools, and a dedicated concierge service.',
-    imageUrl: 'https://picsum.photos/seed/skyline/1200/800',
+    id: 'ali-arcade-1',
+    name: 'Ali Arcade 1',
+    slug: 'ali-arcade-1',
+    location: 'Karachi, Sindh',
+    status: ProjectStatus.COMPLETED,
+    type: ProjectType.MIXED,
+    description: 'A premium mixed-use development featuring luxury retail spaces and modern apartments.',
+    longDescription: 'Ali Arcade 1 stands as a testament to quality construction in Karachi. This flagship project combines high-traffic commercial units with sophisticated residential living, offering a perfect blend of business opportunity and domestic comfort.',
+    imageUrl: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=1200',
     gallery: [
-      'https://picsum.photos/seed/p1/800/600',
-      'https://picsum.photos/seed/p2/800/600',
-      'https://picsum.photos/seed/p3/800/600'
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800'
     ],
-    features: ['Smart Home Automation', 'Infinity Pool', '24/7 Security', 'Private Elevator Access'],
+    features: ['Prime Location', '24/7 Power Backup', 'Dedicated Parking', 'High-Speed Elevators'],
     specs: [
-      { label: 'Plot Size', value: '4 Kanals' },
-      { label: 'Apartment Types', value: '2, 3 & 4 BR' },
-      { label: 'Completion Date', value: 'Dec 2026' }
+      { label: 'Units', value: 'Retail & Residential' },
+      { label: 'Floors', value: 'G+5' },
+      { label: 'Completion', value: '2019' }
     ],
-    paymentPlan: '30% Downpayment, 3-Year Quarterly Installments.'
+    paymentPlan: 'Sold Out. Resale units available through verified agents.'
   },
   {
-    id: 'emerald-plaza',
-    name: 'Emerald Business Plaza',
-    slug: 'emerald-business-plaza',
-    location: 'DHA Phase 6, Lahore',
-    status: ProjectStatus.UPCOMING,
+    id: 'ali-arcade-2',
+    name: 'Ali Arcade 2',
+    slug: 'ali-arcade-2',
+    location: 'Karachi, Sindh',
+    status: ProjectStatus.COMPLETED,
     type: ProjectType.COMMERCIAL,
-    description: 'A futuristic business hub designed for global corporations.',
-    longDescription: 'The Emerald Business Plaza is Lahore’s first gold-certified green building. Designed for energy efficiency and modern corporate requirements, it offers premium office spaces, high-speed fiber connectivity, and a multi-level business lounge.',
-    imageUrl: 'https://picsum.photos/seed/plaza/1200/800',
+    description: 'The second evolution of the Ali Arcade series, focusing on corporate excellence.',
+    longDescription: 'Building on the success of its predecessor, Ali Arcade 2 offers enhanced commercial facilities designed for established brands and growing businesses in the heart of Karachi.',
+    imageUrl: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1200',
     gallery: [
-      'https://picsum.photos/seed/p4/800/600',
-      'https://picsum.photos/seed/p5/800/600'
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800'
     ],
-    features: ['LEED Gold Certified', 'High-Speed Elevators', 'Rooftop Cafe', 'Conference Centers'],
+    features: ['Corporate Lounges', 'Fire Safety Systems', 'CCTV Monitoring', 'Fiber Optic Ready'],
     specs: [
-      { label: 'Plot Size', value: '2 Kanals' },
-      { label: 'Unit Sizes', value: '500 - 5000 Sq Ft' },
-      { label: 'Status', value: 'Pre-launch' }
+      { label: 'Type', value: 'Pure Commercial' },
+      { label: 'Parking', value: 'Basement Level' },
+      { label: 'Status', value: 'Delivered' }
     ],
-    paymentPlan: '15% Booking, Customizable Corporate Plans.'
+    paymentPlan: 'Available for immediate possession and lease.'
   },
   {
-    id: 'asghar-villas',
-    name: 'Asghar Grand Estates',
-    slug: 'asghar-grand-estates',
-    location: 'Bahria Town Phase 8, Rawalpindi',
+    id: 'ali-arcade-3',
+    name: 'Ali Arcade 3',
+    slug: 'ali-arcade-3',
+    location: 'Karachi, Sindh',
     status: ProjectStatus.RUNNING,
-    type: ProjectType.RESIDENTIAL,
-    description: 'Exclusive gated community of signature villas.',
-    longDescription: 'Experience the pinnacle of luxury living in these custom-designed signature villas. Each estate is crafted with premium materials, private gardens, and state-of-the-art security systems.',
-    imageUrl: 'https://picsum.photos/seed/villas/1200/800',
+    type: ProjectType.MIXED,
+    description: 'Our most ambitious project yet, setting new standards for luxury and convenience.',
+    longDescription: 'Ali Arcade 3 represents the pinnacle of the Ali series. Currently under construction in Karachi, this high-rise landmark will feature smart automation, a rooftop recreational area, and premium finishings.',
+    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200',
     gallery: [
-      'https://picsum.photos/seed/p6/800/600',
-      'https://picsum.photos/seed/p7/800/600'
+      'https://images.unsplash.com/photo-1460317442991-0ec209397118?auto=format&fit=crop&q=80&w=800',
+      'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&q=80&w=800'
     ],
-    features: ['Gated Community', 'Private Lush Gardens', 'Solar Power Ready', 'Premium Fittings'],
+    features: ['Rooftop Infinity Pool', 'Smart Home Integration', 'Imported Kitchens', 'Earthquake Resistant'],
     specs: [
-      { label: 'Villa Size', value: '1 Kanal / 2 Kanals' },
-      { label: 'Design', value: 'Modern Mediterranean' },
-      { label: 'Structure', value: 'Grey Structure Complete' }
+      { label: 'Plot Area', value: '2 Kanals' },
+      { label: 'Structure', value: 'RCC Frame' },
+      { label: 'Expected Delivery', value: '2025' }
     ],
-    paymentPlan: '10% Possession, Remaining over 2 years.'
+    paymentPlan: '20% Booking, Easy 3-Year Installment Plan.'
+  },
+  {
+    id: 'al-kauser-residency',
+    name: 'Al Kauser Residency',
+    slug: 'al-kauser-residency',
+    location: 'Karachi, Sindh',
+    status: ProjectStatus.UPCOMING,
+    type: ProjectType.RESIDENTIAL,
+    description: 'Dedicated luxury residential living for elite families in Karachi.',
+    longDescription: 'Al Kauser Residency is designed exclusively for those who seek tranquility and privacy. This upcoming project in Karachi offers spacious apartments with high ceilings and panoramic city views.',
+    imageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=1200',
+    gallery: [
+      'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800'
+    ],
+    features: ['Gated Entrance', 'Private Lobby', 'Guest Suites', 'Solar Water Heating'],
+    specs: [
+      { label: 'Apartment Types', value: '3 & 4 BHK' },
+      { label: 'Total Units', value: '48' },
+      { label: 'Status', value: 'Registration Open' }
+    ],
+    paymentPlan: 'Special Pre-launch discounts available. Contact sales for priority booking.'
   }
 ];

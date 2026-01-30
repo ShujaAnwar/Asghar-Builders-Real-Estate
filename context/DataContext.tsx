@@ -28,7 +28,7 @@ const INITIAL_CONTENT: SiteContent = {
     siteName: "Asghar Builders",
     logoUrl: "",
     faviconUrl: "",
-    footerText: "Pioneers in luxury real estate development and high-end construction. We create landmarks that stand the test of time.",
+    footerText: "Pioneers in luxury real estate development and high-end construction in Karachi. We create landmarks that stand the test of time.",
     socialLinks: {
       facebook: "#",
       twitter: "#",
@@ -38,42 +38,42 @@ const INITIAL_CONTENT: SiteContent = {
   },
   home: {
     heroTitle: "Building Trust. Creating Landmarks.",
-    heroSubtitle: "Asghar Builders brings you visionary architectural designs and premium construction quality tailored for elite living and smart investments.",
+    heroSubtitle: "Asghar Builders brings you visionary architectural designs and premium construction quality tailored for elite living and smart investments in Karachi.",
     heroBgUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070",
     ctaPrimary: "Explore Projects",
     ctaSecondary: "Contact Sales Team",
     seo: {
-      title: "Asghar Builders | Premium Real Estate",
-      description: "Leading real estate developer in Pakistan.",
-      keywords: "real estate, builders, construction"
+      title: "Asghar Builders | Premium Real Estate Karachi",
+      description: "Leading real estate developer in Karachi, Pakistan.",
+      keywords: "real estate, builders, construction, Karachi properties"
     }
   },
   about: {
-    intro: "Founded in the late 90s, Asghar Builders started with a simple vision: to elevate the standard of living in Pakistan through architectural brilliance and structural integrity.",
-    description: "Today, we stand as one of the most trusted names in real estate development, having delivered over 48+ high-profile projects.",
-    vision: "To be the premier catalyst of urban modernization in Pakistan.",
+    intro: "Founded in the late 90s, Asghar Builders started with a simple vision: to elevate the standard of living in Karachi through architectural brilliance and structural integrity.",
+    description: "Today, we stand as one of the most trusted names in real estate development, having delivered numerous high-profile projects across Karachi.",
+    vision: "To be the premier catalyst of urban modernization in Karachi.",
     mission: "To deliver high-value real estate solutions that maximize investor returns.",
     chairmanName: "M. Asghar Khan",
     chairmanRole: "Founder & Chairman",
     chairmanMessage: "We don't just sell plots; we offer a promise of trust and a secure future.",
     chairmanImg: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200",
     seo: {
-      title: "About Us | Asghar Builders",
-      description: "Our legacy and mission.",
-      keywords: "about builders, chairman message"
+      title: "About Us | Asghar Builders Karachi",
+      description: "Our legacy and mission in Karachi.",
+      keywords: "about builders, chairman message, Karachi development"
     }
   },
   contact: {
-    address: "Asghar Builders Head Office, G.T. Road, Gujranwala, Punjab, Pakistan.",
+    address: "Asghar Builders Head Office, Shahrah-e-Faisal, Karachi, Sindh, Pakistan.",
     phone: "+92 (300) 741-2400",
-    phoneSecondary: "+92 (55) 345-6789",
+    phoneSecondary: "+92 (21) 3456-7890",
     email: "info@asgharbuilders.com",
     whatsapp: "+923007412400",
-    mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3378.118671404179!2d74.1945!3d32.1877!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x391f2982d6226683%3A0x6b5c398329b3503d!2sAsghar%20Builders!5e0!3m2!1sen!2s!4v1714500000000!5m2!1sen!2s",
+    mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14476.438515061448!2d67.0681!3d24.8607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33eeb6d2994d5%3A0x6a26778403d59e3!2sShahrah-e-Faisal%2C%20Karachi!5e0!3m2!1sen!2s!4v1714500000000!5m2!1sen!2s",
     seo: {
-      title: "Contact Us | Asghar Builders",
-      description: "Get in touch with our team in Gujranwala.",
-      keywords: "contact real estate, builder Gujranwala, Asghar Builders office"
+      title: "Contact Us | Asghar Builders Karachi",
+      description: "Get in touch with our team in Karachi.",
+      keywords: "contact real estate, builder Karachi, Asghar Builders office"
     }
   }
 };
