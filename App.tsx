@@ -1,14 +1,14 @@
 
 import React from 'react';
 import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-import Home from './pages/Home';
-import Projects from './pages/Projects';
-import ProjectDetail from './pages/ProjectDetail';
-import About from './pages/About';
-import Contact from './pages/Contact';
-import ChatBot from './components/ChatBot';
+import Navbar from './components/Navbar.tsx';
+import Footer from './components/Footer.tsx';
+import Home from './pages/Home.tsx';
+import Projects from './pages/Projects.tsx';
+import ProjectDetail from './pages/ProjectDetail.tsx';
+import About from './pages/About.tsx';
+import Contact from './pages/Contact.tsx';
+import ChatBot from './components/ChatBot.tsx';
 
 const ScrollToTop: React.FC = () => {
   const { pathname } = useLocation();

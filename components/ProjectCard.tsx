@@ -2,7 +2,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight, Building } from 'lucide-react';
-import { Project, ProjectStatus } from '../types';
+import { Project, ProjectStatus } from '../types.ts';
 
 interface ProjectCardProps {
   project: Project;

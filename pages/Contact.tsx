@@ -1,8 +1,16 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
 
 const Contact: React.FC = () => {
+  useEffect(() => {
+    document.title = "Contact Us | Invest with Asghar Builders";
+    const description = "Contact our expert real estate consultants today. Inquire about luxury apartment bookings, commercial units, and flexible payment plans.";
+    const keywords = "contact asghar builders, real estate inquiry, investment advice, Lahore office, Islamabad property sales";
+    
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     alert("Thank you! Your inquiry has been sent to Asghar Builders. We will contact you shortly.");

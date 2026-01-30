@@ -1,7 +1,6 @@
-
 import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { PROJECTS } from '../constants';
+import { PROJECTS } from '../constants.ts';
 import { ArrowLeft, CheckCircle2, Download, MapPin, Building, Calendar, Info } from 'lucide-react';
 
 const ProjectDetail: React.FC = () => {
@@ -10,7 +9,15 @@ const ProjectDetail: React.FC = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [id]);
+    if (project) {
+      document.title = `${project.name} | Asghar Builders`;
+      const description = `${project.name} in ${project.location}. ${project.description} Explore investment opportunities and architectural details.`;
+      const keywords = `${project.name}, ${project.location}, real estate ${project.location}, luxury ${project.type}, Asghar Builders project`;
+      
+      document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+      document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
+    }
+  }, [id, project]);
 
   if (!project) {
     return (
@@ -127,9 +134,9 @@ const ProjectDetail: React.FC = () => {
 
             {/* Map Placeholder */}
             <div className="glass h-64 rounded-3xl overflow-hidden relative border border-white/10">
-               <img src="https://picsum.photos/seed/map/400/300" className="w-full h-full object-cover opacity-50 grayscale" alt="Map" />
+               <img src="https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?auto=format&fit=crop&q=80&w=400" className="w-full h-full object-cover opacity-50 grayscale" alt="Map" />
                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="bg-amber-500 p-3 rounded-full text-white animate-bounce">
+                  <div className="bg-amber-500 p-3 rounded-full text-white">
                     <MapPin size={24} />
                   </div>
                </div>

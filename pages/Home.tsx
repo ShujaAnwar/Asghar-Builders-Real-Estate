@@ -1,11 +1,19 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, CheckCircle2, ShieldCheck, Clock, TrendingUp } from 'lucide-react';
-import { HIGHLIGHTS, PROJECTS } from '../constants';
-import ProjectCard from '../components/ProjectCard';
+import { HIGHLIGHTS, PROJECTS } from '../constants.ts';
+import ProjectCard from '../components/ProjectCard.tsx';
 
 const Home: React.FC = () => {
+  useEffect(() => {
+    document.title = "Asghar Builders | Building Trust. Creating Landmarks.";
+    const description = "Asghar Builders is a leading real estate developer in Pakistan, specializing in luxury residential and commercial projects built with vision and integrity.";
+    const keywords = "Asghar Builders, real estate Pakistan, luxury apartments Islamabad, construction company Lahore, property investment Pakistan";
+    
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
+  }, []);
+
   return (
     <div className="overflow-hidden">
       {/* Hero Section */}
@@ -13,7 +21,7 @@ const Home: React.FC = () => {
         {/* Cinematic Background */}
         <div className="absolute inset-0 z-0">
           <img 
-            src="https://picsum.photos/seed/asgharhero/1920/1080" 
+            src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070" 
             className="w-full h-full object-cover opacity-40" 
             alt="Hero background"
           />
@@ -100,13 +108,13 @@ const Home: React.FC = () => {
             <div className="relative">
               <div className="aspect-square glass rounded-3xl overflow-hidden border border-white/10 p-4">
                 <img 
-                  src="https://picsum.photos/seed/construction/800/800" 
+                  src="https://images.unsplash.com/photo-1541913080-214307cc3ef9?auto=format&fit=crop&q=80&w=800" 
                   alt="Construction Quality" 
                   className="w-full h-full object-cover rounded-2xl grayscale hover:grayscale-0 transition-all duration-700"
                 />
               </div>
               {/* Floating Stat */}
-              <div className="absolute -bottom-8 -left-8 glass p-8 rounded-2xl border border-white/10 shadow-2xl animate-bounce-slow">
+              <div className="absolute -bottom-8 -left-8 glass p-8 rounded-2xl border border-white/10 shadow-2xl">
                 <div className="text-4xl font-black text-amber-500">98%</div>
                 <div className="text-sm font-bold text-white">Client Satisfaction</div>
               </div>

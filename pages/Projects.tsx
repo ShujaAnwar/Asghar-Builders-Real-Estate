@@ -1,11 +1,19 @@
-
-import React, { useState } from 'react';
-import { PROJECTS } from '../constants';
-import { ProjectStatus } from '../types';
-import ProjectCard from '../components/ProjectCard';
+import React, { useState, useEffect } from 'react';
+import { PROJECTS } from '../constants.ts';
+import { ProjectStatus } from '../types.ts';
+import ProjectCard from '../components/ProjectCard.tsx';
 import { Search, Filter } from 'lucide-react';
 
 const Projects: React.FC = () => {
+  useEffect(() => {
+    document.title = "Our Projects | Asghar Builders Portfolio";
+    const description = "Explore the diverse portfolio of Asghar Builders including Asghar Skyline Heights, Emerald Business Plaza, and more luxury real estate developments in Pakistan.";
+    const keywords = "real estate portfolio, upcoming projects, luxury development Islamabad, business plaza Lahore, Asghar Builders projects";
+    
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
+  }, []);
+
   const [filter, setFilter] = useState<ProjectStatus | 'All'>('All');
   
   const filteredProjects = filter === 'All' 

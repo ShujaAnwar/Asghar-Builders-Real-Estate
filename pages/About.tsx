@@ -1,9 +1,17 @@
-
-import React from 'react';
+import React, { useEffect } from 'react';
 // Fix: Added missing Clock import from lucide-react
 import { Target, Eye, Gem, Users, Scale, Award, Clock } from 'lucide-react';
 
 const About: React.FC = () => {
+  useEffect(() => {
+    document.title = "About Us | The Legacy of Asghar Builders";
+    const description = "Learn about the 25-year legacy of Asghar Builders, our mission to modernize urban living, and our core values of integrity and excellence.";
+    const keywords = "about asghar builders, construction philosophy, real estate vision, company legacy, builder history Pakistan";
+    
+    document.querySelector('meta[name="description"]')?.setAttribute('content', description);
+    document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
+  }, []);
+
   return (
     <div className="pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
