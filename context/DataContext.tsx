@@ -3,6 +3,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Project, SiteContent, ProjectStatus, ProjectType, MediaItem } from '../types.ts';
 import { PROJECTS as INITIAL_PROJECTS } from '../constants.ts';
 
+// Increment this whenever a fundamental data change (like Karachi location) needs to be forced to users
+const DATA_VERSION = '2.0.0';
+
 interface DataContextType {
   projects: Project[];
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
@@ -20,7 +23,7 @@ const INITIAL_MEDIA: MediaItem[] = INITIAL_PROJECTS.map(p => ({
   url: p.imageUrl,
   name: p.name,
   type: 'image',
-  tags: ['project', p.type.toLowerCase()]
+  tags: ['project', p.type.toLowerCase(), 'karachi']
 }));
 
 const INITIAL_CONTENT: SiteContent = {
@@ -82,18 +85,30 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [projects, setProjects] = useState<Project[]>(() => {
+    const savedVersion = localStorage.getItem('asghar_data_version');
     const saved = localStorage.getItem('asghar_projects');
-    return saved ? JSON.parse(saved) : INITIAL_PROJECTS.map(p => ({ ...p, slug: p.id }));
+    
+    // If version is missing or old, force a reset to Karachi data
+    if (savedVersion !== DATA_VERSION || !saved) {
+      localStorage.setItem('asghar_data_version', DATA_VERSION);
+      return INITIAL_PROJECTS.map(p => ({ ...p, slug: p.id }));
+    }
+    
+    return JSON.parse(saved);
   });
 
   const [media, setMedia] = useState<MediaItem[]>(() => {
+    const savedVersion = localStorage.getItem('asghar_data_version');
     const saved = localStorage.getItem('asghar_media');
-    return saved ? JSON.parse(saved) : INITIAL_MEDIA;
+    if (savedVersion !== DATA_VERSION || !saved) return INITIAL_MEDIA;
+    return JSON.parse(saved);
   });
 
   const [siteContent, setSiteContent] = useState<SiteContent>(() => {
+    const savedVersion = localStorage.getItem('asghar_data_version');
     const saved = localStorage.getItem('asghar_content');
-    return saved ? JSON.parse(saved) : INITIAL_CONTENT;
+    if (savedVersion !== DATA_VERSION || !saved) return INITIAL_CONTENT;
+    return JSON.parse(saved);
   });
 
   const [isAdmin, setIsAdmin] = useState(() => {
