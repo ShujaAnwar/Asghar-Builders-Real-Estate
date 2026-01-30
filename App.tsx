@@ -10,6 +10,7 @@ import About from './pages/About.tsx';
 import Contact from './pages/Contact.tsx';
 import Gallery from './pages/Gallery.tsx';
 import ChatBot from './components/ChatBot.tsx';
+import ScrollToTopButton from './components/ScrollToTopButton.tsx';
 
 // Admin Pages
 import AdminLogin from './pages/admin/Login.tsx';
@@ -19,7 +20,6 @@ import AdminContentEditor from './pages/admin/ContentEditor.tsx';
 import AdminMediaGallery from './pages/admin/MediaGallery.tsx';
 import { DataProvider, useData } from './context/DataContext.tsx';
 
-// Fix: Use React.FC with explicit children property to satisfy TypeScript requirements
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAdmin } = useData();
   return isAdmin ? <>{children}</> : <Navigate to="/admin/login" />;
@@ -33,19 +33,19 @@ const ScrollToTop: React.FC = () => {
   return null;
 };
 
-// Fix: Use React.FC with explicit children property to satisfy TypeScript requirements
 const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen transition-colors duration-500 bg-white dark:bg-slate-950">
       {!isAdminPath && <Navbar />}
       <main className="flex-grow">
         {children}
       </main>
       {!isAdminPath && <Footer />}
       {!isAdminPath && <ChatBot />}
+      {!isAdminPath && <ScrollToTopButton />}
     </div>
   );
 };

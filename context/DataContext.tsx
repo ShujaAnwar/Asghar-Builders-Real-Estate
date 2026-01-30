@@ -1,12 +1,13 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { Project, SiteContent, MediaItem } from '../types.ts';
 
+// Fix: Access environment variables via process.env directly instead of window.process.env
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gjvgczueyvhifiollnsg.supabase.co';
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_5H5Dcfo3wOwowyQkgDABRw_eBqkf6dk';
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 interface DataContextType {
   projects: Project[];
@@ -20,6 +21,7 @@ interface DataContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   uploadMedia: (file: File) => Promise<string | null>;
+  deleteMedia: (id: string, url: string) => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -35,19 +37,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initData = async () => {
       setLoading(true);
       try {
-        // Fetch Projects
         const { data: projectsData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
         if (projectsData) _setProjects(projectsData);
 
-        // Fetch Media
-        const { data: mediaData } = await supabase.from('media').select('*');
+        const { data: mediaData } = await supabase.from('media').select('*').order('created_at', { ascending: false });
         if (mediaData) _setMedia(mediaData);
 
-        // Fetch Site Content
         const { data: contentData } = await supabase.from('site_content').select('*').single();
         if (contentData) _setSiteContent(contentData.content);
 
-        // Check Auth Session
         const { data: { session } } = await supabase.auth.getSession();
         setIsAdmin(!!session);
       } catch (err) {
@@ -59,7 +57,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initData();
 
-    // Listen for Auth changes
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAdmin(!!session);
     });
@@ -72,11 +69,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setProjects = async (newProjects: Project[] | ((prev: Project[]) => Project[])) => {
     const updated = typeof newProjects === 'function' ? newProjects(projects) : newProjects;
     _setProjects(updated);
-    
-    // Sync to Supabase
-    // Note: In a production app, we would perform granular updates. 
-    // Here we handle the active changes (upsert/delete)
-    // For simplicity of this hook, we assume the individual page calls (like ProjectForm) handle the DB sync.
   };
 
   const setMedia = async (newMedia: MediaItem[] | ((prev: MediaItem[]) => MediaItem[])) => {
@@ -86,7 +78,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setSiteContent = async (content: SiteContent) => {
     _setSiteContent(content);
-    await supabase.from('site_content').upsert({ id: 1, content }).select();
+    const { error } = await supabase.from('site_content').upsert({ id: 1, content }).select();
+    if (error) console.error('Error saving content:', error);
   };
 
   const login = async (email: string, password: string) => {
@@ -105,33 +98,84 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const uploadMedia = async (file: File) => {
-    const fileName = `${Date.now()}-${file.name}`;
-    const { data, error } = await supabase.storage
-      .from('project-media')
-      .upload(fileName, file);
-
-    if (error) {
-      console.error('Upload error:', error);
+    // 1. Validation for desktop/PC users
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      alert(`Unsupported file type: ${file.type}. Please use JPG, PNG, or WEBP.`);
       return null;
     }
 
-    const { data: { publicUrl } } = supabase.storage
+    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      alert("File is too large. Max size allowed is 10MB.");
+      return null;
+    }
+
+    // 2. Secure and Clean File Naming
+    const cleanFileName = file.name.replace(/[^a-zA-Z0-9.]/g, '_');
+    const path = `uploads/${Date.now()}-${cleanFileName}`;
+
+    try {
+      const { data, error } = await supabase.storage
+        .from('project-media')
+        .upload(path, file, { 
+          cacheControl: '3600', 
+          upsert: true,
+          contentType: file.type // Ensure correct MIME type is sent
+        });
+
+      if (error) {
+        console.error('Supabase Storage Upload Error:', error);
+        alert(`Storage Error: ${error.message}`);
+        return null;
+      }
+
+      // 3. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('project-media')
+        .getPublicUrl(path);
+
+      // 4. Record in Database
+      const newItem: MediaItem = {
+        id: path,
+        url: publicUrl,
+        name: file.name,
+        type: file.type.startsWith('video') ? 'video' : 'image',
+        tags: ['uploaded', 'pc-sync']
+      };
+
+      const { error: dbError } = await supabase.from('media').insert(newItem);
+      if (dbError) {
+        console.error('Database Sync Error:', dbError);
+        // We still have the storage URL, so we can return it, but notify the admin
+      }
+
+      _setMedia(prev => [newItem, ...prev]);
+      return publicUrl;
+    } catch (err) {
+      console.error('Unexpected Upload Failure:', err);
+      alert('An unexpected error occurred during desktop upload.');
+      return null;
+    }
+  };
+
+  const deleteMedia = async (id: string, url: string) => {
+    const { error: storageError } = await supabase.storage
       .from('project-media')
-      .getPublicUrl(fileName);
+      .remove([id]);
 
-    // Save metadata to media table
-    const newItem: MediaItem = {
-      id: fileName,
-      url: publicUrl,
-      name: file.name,
-      type: file.type.startsWith('video') ? 'video' : 'image',
-      tags: ['uploaded']
-    };
+    if (storageError) {
+      console.error('Storage deletion error:', storageError);
+      return false;
+    }
 
-    await supabase.from('media').insert(newItem);
-    _setMedia(prev => [newItem, ...prev]);
+    const { error: dbError } = await supabase.from('media').delete().eq('id', id);
+    if (dbError) {
+      console.error('DB deletion error:', dbError);
+      return false;
+    }
 
-    return publicUrl;
+    _setMedia(prev => prev.filter(m => m.id !== id));
+    return true;
   };
 
   if (loading || !siteContent) {
@@ -152,7 +196,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       siteContent, setSiteContent, 
       isAdmin, loading, 
       login, logout, 
-      uploadMedia 
+      uploadMedia,
+      deleteMedia
     }}>
       {children}
     </DataContext.Provider>

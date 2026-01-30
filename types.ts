@@ -50,12 +50,23 @@ export interface MediaItem {
   tags: string[];
 }
 
+export interface NavItem {
+  label: string;
+  path: string;
+}
+
+export interface HighlightItem {
+  label: string;
+  value: string;
+  suffix: string;
+}
+
 export interface SiteContent {
   global: {
     siteName: string;
     logoUrl: string;
-    faviconUrl: string;
     footerText: string;
+    navigation: NavItem[];
     socialLinks: {
       facebook: string;
       twitter: string;
@@ -69,6 +80,11 @@ export interface SiteContent {
     heroBgUrl: string;
     ctaPrimary: string;
     ctaSecondary: string;
+    highlights: HighlightItem[];
+    whyUs: {
+      title: string;
+      items: { title: string; description: string }[];
+    };
     seo: SEOData;
   };
   about: {
