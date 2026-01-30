@@ -31,11 +31,10 @@ const MediaGallery: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this media asset? This will remove it from the library.');
-    if (confirmDelete) {
+    if (window.confirm('Are you sure you want to delete this media asset? This will remove it from the library.')) {
       setMedia(prev => {
         const updated = prev.filter(m => m.id !== id);
-        console.log(`Deleted media item ${id}. New count: ${updated.length}`);
+        console.log(`Media item deleted: ${id}`);
         return updated;
       });
     }
@@ -129,7 +128,8 @@ const MediaGallery: React.FC = () => {
           {filteredMedia.map(item => (
             <div key={item.id} className="group glass rounded-3xl border border-white/10 overflow-hidden relative aspect-square">
               <img src={item.url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt={item.name} />
-              <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-6">
+              {/* Overlay: Added pointer-events-none and group-hover:pointer-events-auto */}
+              <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-6 pointer-events-none group-hover:pointer-events-auto z-10">
                 <div className="flex justify-between items-start">
                   <div className="p-2 bg-white/10 rounded-lg backdrop-blur-md">
                     <ImageIcon className="text-amber-500" size={18} />
@@ -137,10 +137,11 @@ const MediaGallery: React.FC = () => {
                   <button 
                     type="button"
                     onClick={(e) => {
+                      e.preventDefault();
                       e.stopPropagation();
                       handleDelete(item.id);
                     }}
-                    className="p-3 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all transform active:scale-90 z-20"
+                    className="p-3 bg-red-500/20 text-red-500 rounded-xl hover:bg-red-500 hover:text-white transition-all transform active:scale-90 z-20 cursor-pointer relative"
                     title="Delete Asset"
                   >
                     <Trash2 size={20} className="pointer-events-none" />
