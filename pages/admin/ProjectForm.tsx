@@ -2,21 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useData } from '../../context/DataContext.tsx';
+import { createClient } from '@supabase/supabase-js';
 import { Project, ProjectStatus, ProjectType, SEOData } from '../../types.ts';
-import { ArrowLeft, Save, X, Plus, Info, Image as ImageIcon, FileText, Globe, Eye } from 'lucide-react';
+import { ArrowLeft, Save, Info, Image as ImageIcon, FileText, Globe, Loader2, Upload } from 'lucide-react';
 
-const AMENITIES_LIST = [
-  'Smart Home Automation', 'Infinity Pool', '24/7 Security', 'Private Elevator Access',
-  'Gymnasium', 'Roof Garden', 'CCTV Monitoring', 'Gas & Electricity', 'Car Parking',
-  'Power Backup', 'Guest Lounge', 'Kids Play Area', 'High-Speed Internet'
-];
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gjvgczueyvhifiollnsg.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_5H5Dcfo3wOwowyQkgDABRw_eBqkf6dk';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const ProjectForm: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { projects, setProjects, media } = useData();
+  const { projects, setProjects, uploadMedia } = useData();
   const isEditing = !!id;
 
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<Project>>({
     name: '',
     slug: '',
@@ -51,28 +51,40 @@ const ProjectForm: React.FC = () => {
     setFormData({ ...formData, name: val, slug: isEditing ? formData.slug : slug });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setLoading(true);
+    const url = await uploadMedia(file);
+    if (url) {
+      setFormData(prev => ({ ...prev, imageUrl: url }));
+    }
+    setLoading(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+
     const projectData = {
       ...formData,
       id: isEditing ? (id as string) : (formData.slug || Date.now().toString()),
     } as Project;
 
-    if (isEditing) {
-      setProjects(prev => prev.map(p => p.id === id ? projectData : p));
-    } else {
-      setProjects(prev => [projectData, ...prev]);
-    }
-    navigate('/admin');
-  };
+    const { error } = await supabase.from('projects').upsert(projectData);
 
-  const toggleAmenity = (amenity: string) => {
-    const current = formData.features || [];
-    if (current.includes(amenity)) {
-      setFormData({ ...formData, features: current.filter(a => a !== amenity) });
+    if (error) {
+      alert('Error syncing to Supabase: ' + error.message);
     } else {
-      setFormData({ ...formData, features: [...current, amenity] });
+      if (isEditing) {
+        setProjects(prev => prev.map(p => p.id === id ? projectData : p));
+      } else {
+        setProjects(prev => [projectData, ...prev]);
+      }
+      navigate('/admin');
     }
+    setLoading(false);
   };
 
   const handleSEOChange = (field: keyof SEOData, val: string) => {
@@ -87,13 +99,13 @@ const ProjectForm: React.FC = () => {
       <div className="max-w-5xl mx-auto">
         <Link to="/admin" className="inline-flex items-center text-gray-500 hover:text-white mb-8 transition-colors">
           <ArrowLeft size={18} className="mr-2" />
-          Dashboard Overview
+          Cancel & Return
         </Link>
 
         <header className="flex justify-between items-end mb-12">
           <div>
-            <h1 className="text-5xl font-black text-white">{isEditing ? 'Modify Project' : 'New Landmark'}</h1>
-            <p className="text-gray-500 mt-2">Craft the perfect presentation for your elite development.</p>
+            <h1 className="text-5xl font-black text-white">{isEditing ? 'Sync Project' : 'Deploy Landmark'}</h1>
+            <p className="text-gray-500 mt-2">Update Supabase infrastructure in real-time.</p>
           </div>
           <div className="hidden md:flex bg-white/5 border border-white/10 p-1 rounded-2xl">
             {(['content', 'media', 'seo'] as const).map(tab => (
@@ -111,11 +123,10 @@ const ProjectForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-12">
           {activeTab === 'content' && (
             <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4">
-              {/* Identity */}
               <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
                 <div className="flex items-center space-x-3 text-amber-500">
                   <Info size={24} />
-                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Identity & Vision</h3>
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">PostgreSQL Record Identity</h3>
                 </div>
                 
                 <div className="grid md:grid-cols-2 gap-10">
@@ -126,17 +137,16 @@ const ProjectForm: React.FC = () => {
                       value={formData.name}
                       onChange={e => handleNameChange(e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 focus:outline-none focus:border-amber-500 text-white transition-all shadow-inner"
-                      placeholder="e.g. Asghar Royal Heights"
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">URL Slug</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Primary Key (Slug)</label>
                     <input 
                       required
+                      disabled={isEditing}
                       value={formData.slug}
                       onChange={e => setFormData({ ...formData, slug: e.target.value })}
-                      className="w-full bg-slate-900 border border-white/10 rounded-2xl py-5 px-8 text-gray-500 transition-all font-mono text-sm"
-                      placeholder="asghar-royal-heights"
+                      className="w-full bg-slate-900 border border-white/10 rounded-2xl py-5 px-8 text-gray-500 transition-all font-mono text-sm disabled:opacity-50"
                     />
                   </div>
                 </div>
@@ -163,44 +173,40 @@ const ProjectForm: React.FC = () => {
                     </select>
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Location</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Location Node</label>
                     <input 
                       required
                       value={formData.location}
                       onChange={e => setFormData({ ...formData, location: e.target.value })}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
-                      placeholder="DHA Phase 6, Lahore"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Narratives */}
               <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
                 <div className="flex items-center space-x-3 text-amber-500">
                   <FileText size={24} />
-                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Strategic Narratives</h3>
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Database Text Nodes</h3>
                 </div>
                 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Executive Summary</label>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Summary (Short)</label>
                   <textarea 
                     rows={2}
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white resize-none"
-                    placeholder="Brief 1-2 sentence hook for project cards."
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Detailed Presentation</label>
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Detailed Long Description</label>
                   <textarea 
                     rows={8}
                     value={formData.longDescription}
                     onChange={e => setFormData({ ...formData, longDescription: e.target.value })}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white leading-relaxed"
-                    placeholder="Full story, structural highlights, and value proposition."
                   />
                 </div>
               </div>
@@ -212,38 +218,42 @@ const ProjectForm: React.FC = () => {
               <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
                 <div className="flex items-center space-x-3 text-amber-500">
                   <ImageIcon size={24} />
-                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Visual Assets</h3>
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Supabase Storage</h3>
                 </div>
 
                 <div className="space-y-8">
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Master Thumbnail URL</label>
-                    <div className="flex gap-4">
-                      <input 
-                        value={formData.imageUrl}
-                        onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
-                        className="flex-grow bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
-                        placeholder="https://..."
-                      />
-                      {formData.imageUrl && <img src={formData.imageUrl} className="w-20 h-20 rounded-xl object-cover" />}
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Master Image (CDN URL)</label>
+                    <div className="flex flex-col gap-6">
+                      <div className="flex gap-4">
+                        <input 
+                          value={formData.imageUrl}
+                          onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                          className="flex-grow bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
+                          placeholder="https://..."
+                        />
+                        {formData.imageUrl && <img src={formData.imageUrl} className="w-20 h-20 rounded-xl object-cover border-2 border-amber-500/50" />}
+                      </div>
+                      
+                      <label className="flex items-center justify-center gap-3 p-10 border-2 border-dashed border-white/10 rounded-[2rem] hover:border-amber-500/50 hover:bg-amber-500/5 cursor-pointer transition-all">
+                        <Upload size={24} className="text-amber-500" />
+                        <span className="text-gray-400 font-bold">Upload to Storage Bucket</span>
+                        <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} />
+                        {loading && <Loader2 className="animate-spin ml-2" size={18} />}
+                      </label>
                     </div>
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Gallery Stack (New lines for multiple URLs)</label>
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Gallery Stack (JSON-like text[])</label>
                     <textarea 
                       rows={6}
                       value={formData.gallery?.join('\n')}
                       onChange={e => setFormData({ ...formData, gallery: e.target.value.split('\n').filter(l => l.trim()) })}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white font-mono text-xs"
-                      placeholder="Paste one image URL per line..."
+                      placeholder="Paste Supabase public URLs, one per line..."
                     />
                   </div>
-                </div>
-                
-                <div className="bg-white/5 p-6 rounded-2xl flex items-center justify-between border border-white/5">
-                   <div className="text-sm text-gray-500">Need to upload new images?</div>
-                   <Link to="/admin/media" className="text-amber-500 font-bold hover:underline">Open Media Library &rarr;</Link>
                 </div>
               </div>
             </div>
@@ -254,7 +264,7 @@ const ProjectForm: React.FC = () => {
               <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
                 <div className="flex items-center space-x-3 text-amber-500">
                   <Globe size={24} />
-                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Search Optimization (SEO)</h3>
+                  <h3 className="font-black uppercase tracking-[0.2em] text-sm">Search Optimization Nodes</h3>
                 </div>
 
                 <div className="space-y-8">
@@ -264,7 +274,6 @@ const ProjectForm: React.FC = () => {
                       value={formData.seo?.title}
                       onChange={e => handleSEOChange('title', e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
-                      placeholder="Best Luxury Apartments in Lahore | Asghar Builders"
                     />
                   </div>
                   <div className="space-y-3">
@@ -274,16 +283,6 @@ const ProjectForm: React.FC = () => {
                       value={formData.seo?.description}
                       onChange={e => handleSEOChange('description', e.target.value)}
                       className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
-                      placeholder="Discover our latest residential project featuring..."
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Meta Keywords</label>
-                    <input 
-                      value={formData.seo?.keywords}
-                      onChange={e => handleSEOChange('keywords', e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white"
-                      placeholder="real estate, apartments, investment"
                     />
                   </div>
                 </div>
@@ -294,17 +293,18 @@ const ProjectForm: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-6">
              <button 
                type="submit" 
-               className="flex-grow py-6 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-[2rem] shadow-2xl shadow-amber-500/20 flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] text-xl"
+               disabled={loading}
+               className="flex-grow py-6 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-[2rem] shadow-2xl shadow-amber-500/20 flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.02] active:scale-[0.98] text-xl disabled:opacity-50"
              >
-                <Save size={24} />
-                <span>{isEditing ? 'Commit Changes' : 'Publish Landmark'}</span>
+                {loading ? <Loader2 className="animate-spin" size={24} /> : <Save size={24} />}
+                <span>{loading ? 'Committing to PostgreSQL...' : 'Save & Sync to Supabase'}</span>
              </button>
              <button 
                type="button" 
                onClick={() => navigate('/admin')}
                className="px-12 py-6 glass text-gray-400 font-black rounded-[2rem] border border-white/10 hover:bg-red-500/10 hover:text-red-500 transition-all uppercase tracking-widest text-sm"
              >
-                Cancel
+                Abort
              </button>
           </div>
         </form>

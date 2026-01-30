@@ -2,12 +2,17 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext.tsx';
+import { createClient } from '@supabase/supabase-js';
 import { 
-  Plus, LayoutGrid, FileText, Settings, LogOut, 
-  Trash2, Edit3, ExternalLink, Building2, BarChart3, 
-  Clock, CheckCircle, Rocket, Image as ImageIcon, 
-  Globe, ShieldCheck, TrendingUp
+  Plus, LayoutGrid, LogOut, 
+  Trash2, Edit3, ExternalLink, Building2, 
+  ShieldCheck, Image as ImageIcon, 
+  Globe, Clock
 } from 'lucide-react';
+
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gjvgczueyvhifiollnsg.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_5H5Dcfo3wOwowyQkgDABRw_eBqkf6dk';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const Dashboard: React.FC = () => {
   const { projects, setProjects, logout, media } = useData();
@@ -20,9 +25,14 @@ const Dashboard: React.FC = () => {
     { label: 'Site Health', value: '100%', icon: <ShieldCheck />, color: 'text-purple-400' },
   ];
 
-  const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-      setProjects(prev => prev.filter(p => p.id !== id));
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this project? This action will remove it permanently from Supabase.')) {
+      const { error } = await supabase.from('projects').delete().eq('id', id);
+      if (error) {
+        alert('Error deleting project: ' + error.message);
+      } else {
+        setProjects(prev => prev.filter(p => p.id !== id));
+      }
     }
   };
 
@@ -67,8 +77,8 @@ const Dashboard: React.FC = () => {
         </nav>
 
         <div className="p-8 border-t border-white/5">
-          <div className="text-xs text-gray-600 font-bold uppercase tracking-widest mb-2">Build v2.1.0</div>
-          <div className="text-gray-500 text-xs">Environment: Production</div>
+          <div className="text-xs text-gray-600 font-bold uppercase tracking-widest mb-2">Supabase Linked</div>
+          <div className="text-gray-500 text-xs">gjvgczueyvhifiollnsg</div>
         </div>
       </aside>
 
@@ -77,8 +87,8 @@ const Dashboard: React.FC = () => {
         <div className="max-w-6xl mx-auto">
           <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
             <div>
-              <h1 className="text-4xl font-black text-white">Console Overview</h1>
-              <p className="text-gray-500 mt-2">Welcome back. Everything is running smoothly.</p>
+              <h1 className="text-4xl font-black text-white">Live Infrastructure</h1>
+              <p className="text-gray-500 mt-2">Connected to PostgreSQL via Supabase Real-time.</p>
             </div>
             <div className="flex space-x-4">
                <Link to="/" target="_blank" className="p-4 glass rounded-2xl text-gray-400 hover:text-white transition-all flex items-center space-x-2">
@@ -111,10 +121,7 @@ const Dashboard: React.FC = () => {
             <div className="p-8 border-b border-white/5 flex justify-between items-center bg-white/5">
               <div>
                 <h3 className="text-xl font-bold text-white">Project Portfolio</h3>
-                <p className="text-gray-500 text-sm mt-1">Showing all currently listed projects.</p>
-              </div>
-              <div className="flex space-x-2">
-                <div className="px-4 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs font-bold text-gray-400">All Status</div>
+                <p className="text-gray-500 text-sm mt-1">Direct from Supabase PostgreSQL database.</p>
               </div>
             </div>
             <div className="overflow-x-auto">

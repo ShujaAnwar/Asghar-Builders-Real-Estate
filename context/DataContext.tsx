@@ -1,148 +1,159 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Project, SiteContent, ProjectStatus, ProjectType, MediaItem } from '../types.ts';
-import { PROJECTS as INITIAL_PROJECTS } from '../constants.ts';
+import { createClient } from '@supabase/supabase-js';
+import { Project, SiteContent, MediaItem } from '../types.ts';
 
-// Increment this whenever a fundamental data change (like Karachi location) needs to be forced to users
-const DATA_VERSION = '2.0.0';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://gjvgczueyvhifiollnsg.supabase.co';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_5H5Dcfo3wOwowyQkgDABRw_eBqkf6dk';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 interface DataContextType {
   projects: Project[];
-  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
+  setProjects: (projects: Project[] | ((prev: Project[]) => Project[])) => Promise<void>;
   media: MediaItem[];
-  setMedia: React.Dispatch<React.SetStateAction<MediaItem[]>>;
+  setMedia: (media: MediaItem[] | ((prev: MediaItem[]) => MediaItem[])) => Promise<void>;
   siteContent: SiteContent;
-  setSiteContent: React.Dispatch<React.SetStateAction<SiteContent>>;
+  setSiteContent: (content: SiteContent) => Promise<void>;
   isAdmin: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<boolean>;
+  logout: () => Promise<void>;
+  uploadMedia: (file: File) => Promise<string | null>;
 }
-
-const INITIAL_MEDIA: MediaItem[] = INITIAL_PROJECTS.map(p => ({
-  id: `media-${p.id}`,
-  url: p.imageUrl,
-  name: p.name,
-  type: 'image',
-  tags: ['project', p.type.toLowerCase(), 'karachi']
-}));
-
-const INITIAL_CONTENT: SiteContent = {
-  global: {
-    siteName: "Asghar Builders",
-    logoUrl: "",
-    faviconUrl: "",
-    footerText: "Pioneers in luxury real estate development and high-end construction in Karachi. We create landmarks that stand the test of time.",
-    socialLinks: {
-      facebook: "#",
-      twitter: "#",
-      instagram: "#",
-      linkedin: "#",
-    }
-  },
-  home: {
-    heroTitle: "Building Trust. Creating Landmarks.",
-    heroSubtitle: "Asghar Builders brings you visionary architectural designs and premium construction quality tailored for elite living and smart investments in Karachi.",
-    heroBgUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070",
-    ctaPrimary: "Explore Projects",
-    ctaSecondary: "Contact Sales Team",
-    seo: {
-      title: "Asghar Builders | Premium Real Estate Karachi",
-      description: "Leading real estate developer in Karachi, Pakistan.",
-      keywords: "real estate, builders, construction, Karachi properties"
-    }
-  },
-  about: {
-    intro: "Founded in the late 90s, Asghar Builders started with a simple vision: to elevate the standard of living in Karachi through architectural brilliance and structural integrity.",
-    description: "Today, we stand as one of the most trusted names in real estate development, having delivered numerous high-profile projects across Karachi.",
-    vision: "To be the premier catalyst of urban modernization in Karachi.",
-    mission: "To deliver high-value real estate solutions that maximize investor returns.",
-    chairmanName: "M. Asghar Khan",
-    chairmanRole: "Founder & Chairman",
-    chairmanMessage: "We don't just sell plots; we offer a promise of trust and a secure future.",
-    chairmanImg: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=200",
-    seo: {
-      title: "About Us | Asghar Builders Karachi",
-      description: "Our legacy and mission in Karachi.",
-      keywords: "about builders, chairman message, Karachi development"
-    }
-  },
-  contact: {
-    address: "Asghar Builders Head Office, Shahrah-e-Faisal, Karachi, Sindh, Pakistan.",
-    phone: "+92 (300) 741-2400",
-    phoneSecondary: "+92 (21) 3456-7890",
-    email: "info@asgharbuilders.com",
-    whatsapp: "+923007412400",
-    mapEmbedUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14476.438515061448!2d67.0681!3d24.8607!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3eb33eeb6d2994d5%3A0x6a26778403d59e3!2sShahrah-e-Faisal%2C%20Karachi!5e0!3m2!1sen!2s!4v1714500000000!5m2!1sen!2s",
-    seo: {
-      title: "Contact Us | Asghar Builders Karachi",
-      description: "Get in touch with our team in Karachi.",
-      keywords: "contact real estate, builder Karachi, Asghar Builders office"
-    }
-  }
-};
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [projects, setProjects] = useState<Project[]>(() => {
-    const savedVersion = localStorage.getItem('asghar_data_version');
-    const saved = localStorage.getItem('asghar_projects');
+  const [projects, _setProjects] = useState<Project[]>([]);
+  const [media, _setMedia] = useState<MediaItem[]>([]);
+  const [siteContent, _setSiteContent] = useState<SiteContent | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const initData = async () => {
+      setLoading(true);
+      try {
+        // Fetch Projects
+        const { data: projectsData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
+        if (projectsData) _setProjects(projectsData);
+
+        // Fetch Media
+        const { data: mediaData } = await supabase.from('media').select('*');
+        if (mediaData) _setMedia(mediaData);
+
+        // Fetch Site Content
+        const { data: contentData } = await supabase.from('site_content').select('*').single();
+        if (contentData) _setSiteContent(contentData.content);
+
+        // Check Auth Session
+        const { data: { session } } = await supabase.auth.getSession();
+        setIsAdmin(!!session);
+      } catch (err) {
+        console.error('Supabase initialization error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initData();
+
+    // Listen for Auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAdmin(!!session);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const setProjects = async (newProjects: Project[] | ((prev: Project[]) => Project[])) => {
+    const updated = typeof newProjects === 'function' ? newProjects(projects) : newProjects;
+    _setProjects(updated);
     
-    // If version is missing or old, force a reset to Karachi data
-    if (savedVersion !== DATA_VERSION || !saved) {
-      localStorage.setItem('asghar_data_version', DATA_VERSION);
-      return INITIAL_PROJECTS.map(p => ({ ...p, slug: p.id }));
-    }
-    
-    return JSON.parse(saved);
-  });
-
-  const [media, setMedia] = useState<MediaItem[]>(() => {
-    const savedVersion = localStorage.getItem('asghar_data_version');
-    const saved = localStorage.getItem('asghar_media');
-    if (savedVersion !== DATA_VERSION || !saved) return INITIAL_MEDIA;
-    return JSON.parse(saved);
-  });
-
-  const [siteContent, setSiteContent] = useState<SiteContent>(() => {
-    const savedVersion = localStorage.getItem('asghar_data_version');
-    const saved = localStorage.getItem('asghar_content');
-    if (savedVersion !== DATA_VERSION || !saved) return INITIAL_CONTENT;
-    return JSON.parse(saved);
-  });
-
-  const [isAdmin, setIsAdmin] = useState(() => {
-    return localStorage.getItem('asghar_admin_session') === 'active';
-  });
-
-  useEffect(() => {
-    localStorage.setItem('asghar_projects', JSON.stringify(projects));
-  }, [projects]);
-
-  useEffect(() => {
-    localStorage.setItem('asghar_media', JSON.stringify(media));
-  }, [media]);
-
-  useEffect(() => {
-    localStorage.setItem('asghar_content', JSON.stringify(siteContent));
-  }, [siteContent]);
-
-  const login = (password: string) => {
-    if (password === 'admin123') {
-      setIsAdmin(true);
-      localStorage.setItem('asghar_admin_session', 'active');
-      return true;
-    }
-    return false;
+    // Sync to Supabase
+    // Note: In a production app, we would perform granular updates. 
+    // Here we handle the active changes (upsert/delete)
+    // For simplicity of this hook, we assume the individual page calls (like ProjectForm) handle the DB sync.
   };
 
-  const logout = () => {
+  const setMedia = async (newMedia: MediaItem[] | ((prev: MediaItem[]) => MediaItem[])) => {
+    const updated = typeof newMedia === 'function' ? newMedia(media) : newMedia;
+    _setMedia(updated);
+  };
+
+  const setSiteContent = async (content: SiteContent) => {
+    _setSiteContent(content);
+    await supabase.from('site_content').upsert({ id: 1, content }).select();
+  };
+
+  const login = async (email: string, password: string) => {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) {
+      console.error('Login error:', error.message);
+      return false;
+    }
+    setIsAdmin(true);
+    return true;
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setIsAdmin(false);
-    localStorage.removeItem('asghar_admin_session');
   };
+
+  const uploadMedia = async (file: File) => {
+    const fileName = `${Date.now()}-${file.name}`;
+    const { data, error } = await supabase.storage
+      .from('project-media')
+      .upload(fileName, file);
+
+    if (error) {
+      console.error('Upload error:', error);
+      return null;
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('project-media')
+      .getPublicUrl(fileName);
+
+    // Save metadata to media table
+    const newItem: MediaItem = {
+      id: fileName,
+      url: publicUrl,
+      name: file.name,
+      type: file.type.startsWith('video') ? 'video' : 'image',
+      tags: ['uploaded']
+    };
+
+    await supabase.from('media').insert(newItem);
+    _setMedia(prev => [newItem, ...prev]);
+
+    return publicUrl;
+  };
+
+  if (loading || !siteContent) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-400 font-bold tracking-widest uppercase text-xs">Asghar Portal Syncing...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <DataContext.Provider value={{ projects, setProjects, media, setMedia, siteContent, setSiteContent, isAdmin, login, logout }}>
+    <DataContext.Provider value={{ 
+      projects, setProjects, 
+      media, setMedia, 
+      siteContent, setSiteContent, 
+      isAdmin, loading, 
+      login, logout, 
+      uploadMedia 
+    }}>
       {children}
     </DataContext.Provider>
   );
