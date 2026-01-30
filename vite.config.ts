@@ -6,14 +6,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Increase the limit from default 500kb to 1600kb 
-    // to handle the premium UI assets and dependencies.
     chunkSizeWarningLimit: 1600,
+    outDir: 'dist',
+    emptyOutDir: true,
     rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom', 'lucide-react'],
-        }
+      input: {
+        main: './index.html',
       }
     }
   },
