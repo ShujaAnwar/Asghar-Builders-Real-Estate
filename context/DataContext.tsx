@@ -53,9 +53,9 @@ const INITIAL_CONTENT: SiteContent = {
     description: 'We specialize in high-end residential and commercial projects that define the city\'s skyline.',
     vision: 'To be the most trusted name in luxury construction in Pakistan.',
     mission: 'Delivering excellence through quality, transparency, and architectural innovation.',
-    chairmanName: 'Muhammad Asghar',
-    chairmanRole: 'Founder & Chairman',
-    chairmanMessage: 'Our success is built on the trust of our clients and the integrity of our builds. We don’t just build structures; we build legacies for generations to come.',
+    chairmanName: 'M. ASGHAR KHAN',
+    chairmanRole: 'FOUNDER',
+    chairmanMessage: 'Quality is our signature.',
     chairmanImg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop',
     seo: { title: 'About Us | Asghar Builders', description: 'Our Legacy', keywords: 'History, Team' }
   },

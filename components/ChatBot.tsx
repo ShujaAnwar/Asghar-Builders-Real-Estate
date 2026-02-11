@@ -18,17 +18,6 @@ const ChatBot: React.FC = () => {
     }
   }, [messages]);
 
-  const getCoordinates = (): Promise<{ lat: number; lng: number } | null> => {
-    return new Promise((resolve) => {
-      if (!navigator.geolocation) return resolve(null);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => resolve(null),
-        { timeout: 5000 }
-      );
-    });
-  };
-
   const handleSend = async () => {
     if (!input.trim() || loading) return;
 
@@ -39,37 +28,30 @@ const ChatBot: React.FC = () => {
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const locationKeywords = ['near', 'location', 'where', 'nearby', 'map', 'place', 'restaurant', 'school', 'hospital'];
+      const locationKeywords = ['near', 'location', 'where', 'nearby', 'map', 'place', 'restaurant', 'school', 'hospital', 'address'];
       const isLocationQuery = locationKeywords.some(k => userMsg.toLowerCase().includes(k));
 
       let responseText = "";
       let groundingLinks: { title: string; uri: string }[] = [];
 
       if (isLocationQuery) {
-        // Use Gemini 2.5 Flash for Maps Grounding
-        const coords = await getCoordinates();
+        // Consolidating to Gemini 3 Flash + Google Search for consistent location & search grounding
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3-flash-preview',
           contents: userMsg,
           config: {
-            tools: [{ googleMaps: {} }],
-            toolConfig: {
-              retrievalConfig: {
-                latLng: coords ? { latitude: coords.lat, longitude: coords.lng } : undefined
-              }
-            },
-            systemInstruction: 'You are a real estate location expert. Use Google Maps to find accurate information about nearby landmarks, amenities, and project locations for Asghar Builders in Karachi. Always provide helpful context.',
+            tools: [{ googleSearch: {} }],
+            systemInstruction: 'You are an elite real estate location advisor for Asghar Builders in Karachi. Use Google Search to find real-time information about project locations, nearby amenities, and infrastructure. Provide specific links when available.',
           }
         });
         
-        responseText = response.text || "I found some relevant locations for you.";
+        responseText = response.text || "I've analyzed the location node. Here are the findings.";
         
-        // Extract Maps grounding links
         const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
         if (chunks) {
           chunks.forEach((chunk: any) => {
-            if (chunk.maps) {
-              groundingLinks.push({ title: chunk.maps.title || 'View on Maps', uri: chunk.maps.uri });
+            if (chunk.web) {
+              groundingLinks.push({ title: chunk.web.title || 'View Source', uri: chunk.web.uri });
             }
           });
         }
@@ -82,13 +64,12 @@ const ChatBot: React.FC = () => {
           contents: userMsg,
           config: {
             thinkingConfig: { thinkingBudget: 32768 },
-            systemInstruction: 'You are an elite, highly intelligent real estate strategist for Asghar Builders. Use your advanced reasoning (Thinking Mode) to provide detailed investment advice, architectural insights, and transparency reports. Maintain a tone of premium luxury and absolute reliability. Asghar Builders projects: Ali Arcade 1, 2, 3 and Al Kauser Residency.',
+            systemInstruction: 'You are an elite, highly intelligent real estate strategist for Asghar Builders. Use your advanced reasoning (Thinking Mode) to provide detailed investment advice, architectural insights, and transparency reports. Maintain a tone of premium luxury and absolute reliability.',
           }
         });
         
-        // Remove the "Thinking..." temporary message
         setMessages(prev => prev.filter(m => !m.isThinking));
-        responseText = response.text || "Our strategic analysis is currently being updated. Please consult our head office.";
+        responseText = response.text || "The analysis phase is complete. Please consult our executive team for final validation.";
       }
 
       setMessages(prev => [...prev, { 
@@ -155,9 +136,8 @@ const ChatBot: React.FC = () => {
                         rel="noopener noreferrer"
                         className="flex items-center space-x-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase text-amber-500 hover:bg-amber-500 hover:text-white transition-all"
                       >
-                        <MapPin size={12} />
-                        <span>{link.title}</span>
                         <ExternalLink size={10} />
+                        <span>{link.title}</span>
                       </a>
                     ))}
                   </div>
@@ -199,7 +179,7 @@ const ChatBot: React.FC = () => {
               <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Quantum Secured</span>
               <div className="flex items-center space-x-2">
                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                 <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Thinking Mode Enabled</span>
+                 <span className="text-[9px] font-black text-blue-500 uppercase tracking-widest">Grounding Mode Active</span>
               </div>
             </div>
           </div>

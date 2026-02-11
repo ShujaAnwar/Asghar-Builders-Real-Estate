@@ -43,7 +43,7 @@ const About: React.FC = () => {
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
                <Eye size={180} />
             </div>
-            <div className="w-20 h-20 bg-amber-500/10 rounded-[2rem] flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
+            <div className="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
               <Eye className="text-amber-500" size={40} />
             </div>
             <h3 className="text-4xl font-black text-white mb-8 tracking-tighter">Our Vision</h3>
@@ -55,7 +55,7 @@ const About: React.FC = () => {
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
                <Target size={180} />
             </div>
-            <div className="w-20 h-20 bg-amber-500/10 rounded-[2rem] flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
+            <div className="w-20 h-20 bg-amber-500/10 rounded-2xl flex items-center justify-center mb-10 group-hover:scale-110 transition-transform">
               <Target className="text-amber-500" size={40} />
             </div>
             <h3 className="text-4xl font-black text-white mb-8 tracking-tighter">Our Mission</h3>
@@ -65,48 +65,56 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Founder Section */}
+        {/* Founder Section - High Accuracy Matching UI Screenshot */}
         <section className="relative py-20 px-4">
-           <div className="glass rounded-[5rem] border border-white/10 overflow-hidden bg-slate-900/40 relative">
-             <div className="grid lg:grid-cols-2 items-stretch">
-               {/* Founder Image */}
-               <div className="relative h-[500px] lg:h-auto overflow-hidden">
+           <div className="glass rounded-[4rem] border border-white/10 overflow-hidden bg-slate-950/80 relative shadow-2xl">
+             <div className="grid lg:grid-cols-2 items-stretch min-h-[600px]">
+               {/* Founder Image Side */}
+               <div className="relative overflow-hidden bg-slate-900">
                  <img 
-                   src={siteContent.about.chairmanImg || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800"} 
-                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" 
-                   alt="Founder" 
+                   src={siteContent.about.chairmanImg} 
+                   className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 transition-all duration-1000" 
+                   alt="Founder Portrait" 
                  />
-                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/40 to-transparent"></div>
-                 <div className="absolute bottom-12 left-12">
+                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/30 to-transparent"></div>
+                 
+                 {/* Signature Rounded Corner from Screenshot */}
+                 <div className="absolute top-0 left-0 w-32 h-32 bg-slate-950 rounded-br-[4rem] border-b border-r border-white/5"></div>
+                 
+                 <div className="absolute bottom-10 left-10">
                    <div className="glass px-6 py-2 rounded-full border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-xl">
                       Asghar Builders Leadership
                    </div>
                  </div>
                </div>
 
-               {/* Founder Message */}
-               <div className="p-12 md:p-24 flex flex-col justify-center space-y-12 relative">
-                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                   <Users size={300} />
+               {/* Content Side (Matched to dark navy/black split) */}
+               <div className="bg-[#050a18] p-12 md:p-24 flex flex-col justify-center space-y-12 relative border-l border-white/5">
+                 <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
+                   <Users size={400} />
                  </div>
                  
-                 <div className="relative">
-                   <Quote className="text-amber-500 mb-8 opacity-50" size={64} />
-                   <p className="text-3xl md:text-5xl font-bold text-white italic leading-tight tracking-tighter">
+                 <div className="relative space-y-6">
+                   <Quote className="text-amber-500 mb-8 opacity-80" size={48} />
+                   <h2 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tighter italic">
                     "{siteContent.about.chairmanMessage}"
-                   </p>
+                   </h2>
                  </div>
 
-                 <div className="pt-12 border-t border-white/10 flex flex-col space-y-2">
-                    <span className="text-white font-black text-4xl tracking-tighter uppercase">{siteContent.about.chairmanName}</span>
-                    <div className="flex items-center space-x-4">
-                       <div className="h-px w-12 bg-amber-500"></div>
-                       <span className="text-amber-500 font-black tracking-[0.4em] uppercase text-xs">{siteContent.about.chairmanRole}</span>
+                 <div className="pt-12 border-t border-white/10">
+                    <div className="flex flex-col">
+                       <span className="text-white font-black text-5xl tracking-tighter uppercase mb-2">{siteContent.about.chairmanName}</span>
+                       <div className="flex items-center space-x-4">
+                          <div className="h-0.5 w-12 bg-amber-500"></div>
+                          <span className="text-amber-500 font-black tracking-[0.4em] uppercase text-xs">{siteContent.about.chairmanRole}</span>
+                       </div>
                     </div>
                  </div>
 
-                 <div className="pt-8">
-                   <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Signature_of_Mahatma_Gandhi.png" alt="Signature" className="h-16 invert opacity-30 grayscale brightness-200" />
+                 <div className="pt-10">
+                    <div className="opacity-20 grayscale invert">
+                       <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Signature_of_Mahatma_Gandhi.png" alt="Verified Signature" className="h-14" />
+                    </div>
                  </div>
                </div>
              </div>

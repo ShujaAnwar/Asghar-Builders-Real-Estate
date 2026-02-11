@@ -1,18 +1,20 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useData, supabase } from '../../context/DataContext.tsx';
 import { 
   ArrowLeft, Save, Home, Info, Phone, Settings, 
   Plus, Trash2, Layout, Globe, Loader2, Navigation,
   Share2, Image as ImageIcon, ArrowUp, ArrowDown, Building2,
-  Mail, MapPin
+  Mail, MapPin, Search, CheckCircle2, X, Cloud, Users
 } from 'lucide-react';
 
 const ContentEditor: React.FC = () => {
-  const { siteContent, setSiteContent, projects, setProjects } = useData();
+  const { siteContent, setSiteContent, projects, setProjects, media } = useData();
   const [activeSection, setActiveSection] = useState<'global' | 'home' | 'about' | 'contact' | 'social' | 'ordering'>('global');
   const [loading, setLoading] = useState(false);
+  const [showPicker, setShowPicker] = useState<boolean>(false);
+  const [pickerSearch, setPickerSearch] = useState('');
   const navigate = useNavigate();
 
   const handleDeepChange = (section: keyof typeof siteContent, field: string, value: any) => {
@@ -31,17 +33,14 @@ const ContentEditor: React.FC = () => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= newProjects.length) return;
 
-    // Swap
     [newProjects[index], newProjects[targetIndex]] = [newProjects[targetIndex], newProjects[index]];
 
-    // Re-assign displayOrder
     newProjects.forEach((p, idx) => {
       p.displayOrder = idx;
     });
 
     setProjects(newProjects);
     
-    // Persist all orders to Supabase
     setLoading(true);
     for (const p of newProjects) {
       await supabase.from('projects').update({ displayOrder: p.displayOrder }).eq('id', p.id);
@@ -49,18 +48,9 @@ const ContentEditor: React.FC = () => {
     setLoading(false);
   };
 
-  const addNav = () => {
-    const updated = { ...siteContent.global, navigation: [...(siteContent.global.navigation || []), { label: '', path: '' }] };
-    handleDeepChange('global', 'navigation', updated.navigation);
-  };
-  const removeNav = (i: number) => {
-    const updated = { ...siteContent.global, navigation: (siteContent.global.navigation || []).filter((_, idx) => idx !== i) };
-    handleDeepChange('global', 'navigation', updated.navigation);
-  };
-  const updateNav = (i: number, field: 'label' | 'path', val: string) => {
-    const newNav = [...(siteContent.global.navigation || [])];
-    newNav[i] = { ...newNav[i], [field]: val };
-    handleDeepChange('global', 'navigation', newNav);
+  const selectFounderImg = (url: string) => {
+    handleDeepChange('about', 'chairmanImg', url);
+    setShowPicker(false);
   };
 
   const menu = [
@@ -252,9 +242,119 @@ const ContentEditor: React.FC = () => {
             </div>
           )}
 
-          {/* ... existing home and about sections would follow here if selected ... */}
+          {activeSection === 'about' && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-right-4">
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3"><Info className="text-amber-500" /> Mission & Vision</h3>
+                <div className="space-y-8">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Corporate Intro</label>
+                    <textarea rows={3} value={siteContent.about.intro} onChange={e => handleDeepChange('about', 'intro', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" />
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Vision Statement</label>
+                      <textarea rows={3} value={siteContent.about.vision} onChange={e => handleDeepChange('about', 'vision', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" />
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Mission Statement</label>
+                      <textarea rows={3} value={siteContent.about.mission} onChange={e => handleDeepChange('about', 'mission', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Founder Section Management */}
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3"><Users className="text-amber-500" /> Founder Management</h3>
+                <div className="flex flex-col md:flex-row gap-10">
+                   <div className="w-full md:w-64 aspect-[4/5] glass rounded-3xl overflow-hidden relative group border border-white/10 shadow-inner">
+                      <img src={siteContent.about.chairmanImg} className="w-full h-full object-cover transition-transform group-hover:scale-105 duration-700" alt="Founder" />
+                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-4">
+                        <button onClick={() => setShowPicker(true)} className="px-6 py-2 bg-amber-500 text-white font-black text-[10px] uppercase rounded-full shadow-lg hover:scale-105 transition-all">Change Image</button>
+                      </div>
+                   </div>
+                   <div className="flex-1 space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Founder Name</label>
+                          <input value={siteContent.about.chairmanName} onChange={e => handleDeepChange('about', 'chairmanName', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" />
+                        </div>
+                        <div className="space-y-3">
+                          <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Role Title</label>
+                          <input value={siteContent.about.chairmanRole} onChange={e => handleDeepChange('about', 'chairmanRole', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" />
+                        </div>
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Signature Quote</label>
+                        <textarea rows={3} value={siteContent.about.chairmanMessage} onChange={e => handleDeepChange('about', 'chairmanMessage', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" placeholder="Quality is our signature." />
+                      </div>
+                      <div className="space-y-3">
+                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Direct Image URL Override</label>
+                        <input value={siteContent.about.chairmanImg} onChange={e => handleDeepChange('about', 'chairmanImg', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none text-[10px] font-mono" />
+                      </div>
+                   </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
+
+      {/* Shared Asset Picker Modal for Founder Image */}
+      {showPicker && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="glass w-full max-w-5xl max-h-[90vh] rounded-[3.5rem] border border-white/10 flex flex-col overflow-hidden shadow-2xl">
+            <header className="p-10 border-b border-white/10 flex justify-between items-center bg-slate-900/50">
+              <div>
+                <h3 className="text-3xl font-black text-white tracking-tighter">Asset Repository</h3>
+                <p className="text-amber-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Target: Founder Identity Node</p>
+              </div>
+              <button onClick={() => setShowPicker(false)} className="p-4 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all"><X /></button>
+            </header>
+            
+            <div className="p-8 border-b border-white/5">
+              <div className="relative">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+                <input 
+                  value={pickerSearch}
+                  onChange={e => setPickerSearch(e.target.value)}
+                  placeholder="Filter repository for the perfect portrait..." 
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white focus:outline-none focus:border-amber-500 shadow-inner" 
+                />
+              </div>
+            </div>
+
+            <div className="flex-grow overflow-y-auto p-10 grid grid-cols-2 md:grid-cols-4 xl:grid-cols-5 gap-8 bg-slate-900/20">
+              {media.filter(m => m.name.toLowerCase().includes(pickerSearch.toLowerCase())).map(item => (
+                <button 
+                  key={item.id} 
+                  type="button"
+                  onClick={() => selectFounderImg(item.url)}
+                  className="group relative aspect-square rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500/50 transition-all shadow-lg"
+                >
+                  <img src={item.url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Asset" />
+                  <div className="absolute inset-0 bg-amber-500/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                    <div className="bg-white text-amber-500 p-3 rounded-full shadow-2xl transform scale-50 group-hover:scale-100 transition-transform">
+                      <CheckCircle2 size={32} />
+                    </div>
+                  </div>
+                </button>
+              ))}
+              {media.length === 0 && (
+                <div className="col-span-full py-20 text-center">
+                  <ImageIcon className="mx-auto text-gray-700 mb-6 opacity-20" size={64} />
+                  <p className="text-gray-500 font-black uppercase tracking-widest text-sm">Repository Empty. Upload images in Media Gallery first.</p>
+                </div>
+              )}
+            </div>
+            
+            <footer className="p-10 border-t border-white/10 flex justify-center">
+               <button onClick={() => setShowPicker(false)} className="px-12 py-5 glass text-white font-black rounded-2xl border border-white/10 hover:bg-white/5 transition-all text-sm uppercase tracking-widest">Close Browser</button>
+            </footer>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
