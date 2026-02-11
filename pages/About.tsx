@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useData } from '../context/DataContext.tsx';
-import { Target, Eye, Users, Award } from 'lucide-react';
+import { Target, Eye, Users, Award, Quote } from 'lucide-react';
 
 const About: React.FC = () => {
   const { siteContent } = useData();
@@ -14,6 +14,7 @@ const About: React.FC = () => {
   return (
     <div className="pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Legacy Section */}
         <div className="grid lg:grid-cols-2 gap-20 items-center mb-32">
           <div className="space-y-10">
             <div className="inline-block text-amber-500 font-black tracking-[0.4em] uppercase text-xs px-6 py-2 glass rounded-full border border-amber-500/20">Our Legacy</div>
@@ -36,6 +37,7 @@ const About: React.FC = () => {
           </div>
         </div>
 
+        {/* Vision & Mission */}
         <div className="grid md:grid-cols-2 gap-12 mb-40">
           <div className="glass p-16 rounded-[4rem] border border-white/5 group hover:border-amber-500/30 transition-all relative overflow-hidden">
             <div className="absolute top-0 right-0 p-12 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -63,26 +65,53 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        <div className="glass p-12 md:p-32 rounded-[5rem] border border-white/10 relative overflow-hidden bg-gradient-to-br from-white/[0.03] to-transparent text-center">
-          <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-            <Users size={400} />
-          </div>
-          <div className="relative z-10 max-w-5xl mx-auto">
-             <div className="text-amber-500 font-black uppercase text-xs tracking-[0.5em] mb-12">Executive Strategy</div>
-             <p className="text-3xl md:text-5xl font-bold text-white italic leading-tight mb-16 tracking-tighter">
-              "{siteContent.about.chairmanMessage}"
-             </p>
-             <div className="flex flex-col items-center">
-               <div className="w-32 h-32 rounded-full bg-slate-800 border-8 border-amber-500/10 mb-8 overflow-hidden shadow-2xl">
-                 <img src={siteContent.about.chairmanImg || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=300"} className="w-full h-full object-cover grayscale" alt="Chairman" />
+        {/* Founder Section */}
+        <section className="relative py-20 px-4">
+           <div className="glass rounded-[5rem] border border-white/10 overflow-hidden bg-slate-900/40 relative">
+             <div className="grid lg:grid-cols-2 items-stretch">
+               {/* Founder Image */}
+               <div className="relative h-[500px] lg:h-auto overflow-hidden">
+                 <img 
+                   src={siteContent.about.chairmanImg || "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800"} 
+                   className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000" 
+                   alt="Founder" 
+                 />
+                 <div className="absolute inset-0 bg-gradient-to-r from-slate-950/40 to-transparent"></div>
+                 <div className="absolute bottom-12 left-12">
+                   <div className="glass px-6 py-2 rounded-full border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] backdrop-blur-xl">
+                      Asghar Builders Leadership
+                   </div>
+                 </div>
                </div>
-               <div>
-                  <div className="text-white font-black text-3xl tracking-tighter">{siteContent.about.chairmanName}</div>
-                  <div className="text-amber-500 font-black tracking-[0.3em] uppercase text-xs mt-2">{siteContent.about.chairmanRole}</div>
+
+               {/* Founder Message */}
+               <div className="p-12 md:p-24 flex flex-col justify-center space-y-12 relative">
+                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                   <Users size={300} />
+                 </div>
+                 
+                 <div className="relative">
+                   <Quote className="text-amber-500 mb-8 opacity-50" size={64} />
+                   <p className="text-3xl md:text-5xl font-bold text-white italic leading-tight tracking-tighter">
+                    "{siteContent.about.chairmanMessage}"
+                   </p>
+                 </div>
+
+                 <div className="pt-12 border-t border-white/10 flex flex-col space-y-2">
+                    <span className="text-white font-black text-4xl tracking-tighter uppercase">{siteContent.about.chairmanName}</span>
+                    <div className="flex items-center space-x-4">
+                       <div className="h-px w-12 bg-amber-500"></div>
+                       <span className="text-amber-500 font-black tracking-[0.4em] uppercase text-xs">{siteContent.about.chairmanRole}</span>
+                    </div>
+                 </div>
+
+                 <div className="pt-8">
+                   <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Signature_of_Mahatma_Gandhi.png" alt="Signature" className="h-16 invert opacity-30 grayscale brightness-200" />
+                 </div>
                </div>
              </div>
-          </div>
-        </div>
+           </div>
+        </section>
       </div>
     </div>
   );

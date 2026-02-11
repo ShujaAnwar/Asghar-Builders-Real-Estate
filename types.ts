@@ -39,6 +39,7 @@ export interface Project {
   paymentPlan?: string;
   priceRange?: string;
   completionDate?: string;
+  displayOrder?: number; // Added for manual sorting
   seo?: SEOData;
 }
 
@@ -72,6 +73,9 @@ export interface SiteContent {
       twitter: string;
       instagram: string;
       linkedin: string;
+      youtube: string;
+      tiktok: string;
+      whatsapp: string;
     };
   };
   home: {

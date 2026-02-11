@@ -10,7 +10,6 @@ const getEnv = (key: string) => {
 const SUPABASE_URL = getEnv('SUPABASE_URL');
 const SUPABASE_ANON_KEY = getEnv('SUPABASE_ANON_KEY');
 
-// Initialize Supabase Client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const INITIAL_CONTENT: SiteContent = {
@@ -25,7 +24,15 @@ const INITIAL_CONTENT: SiteContent = {
       { label: 'About', path: '/about' },
       { label: 'Contact', path: '/contact' },
     ],
-    socialLinks: { facebook: '', twitter: '', instagram: '', linkedin: '' }
+    socialLinks: { 
+      facebook: '', 
+      twitter: '', 
+      instagram: '', 
+      linkedin: '',
+      youtube: '',
+      tiktok: '',
+      whatsapp: ''
+    }
   },
   home: {
     heroTitle: 'Building Trust. Creating Landmarks.',
@@ -46,10 +53,10 @@ const INITIAL_CONTENT: SiteContent = {
     description: 'We specialize in high-end residential and commercial projects that define the city\'s skyline.',
     vision: 'To be the most trusted name in luxury construction in Pakistan.',
     mission: 'Delivering excellence through quality, transparency, and architectural innovation.',
-    chairmanName: 'M. Asghar',
+    chairmanName: 'Muhammad Asghar',
     chairmanRole: 'Founder & Chairman',
-    chairmanMessage: 'Our success is built on the trust of our clients and the integrity of our builds.',
-    chairmanImg: '',
+    chairmanMessage: 'Our success is built on the trust of our clients and the integrity of our builds. We don’t just build structures; we build legacies for generations to come.',
+    chairmanImg: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop',
     seo: { title: 'About Us | Asghar Builders', description: 'Our Legacy', keywords: 'History, Team' }
   },
   contact: {
@@ -79,7 +86,6 @@ interface DataContextType {
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-// MANDATORY: This name must match your Supabase bucket EXACTLY (lowercase)
 const STORAGE_BUCKET = 'projects';
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -93,18 +99,24 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initData = async () => {
       setLoading(true);
       try {
-        console.log("Supabase URL Check:", SUPABASE_URL);
-        console.log("Key Check (First 5):", SUPABASE_ANON_KEY?.substring(0, 5));
-
-        const { data: projectsData } = await supabase.from('projects').select('*').order('created_at', { ascending: false });
-        if (projectsData) _setProjects(projectsData);
+        const { data: projectsData } = await supabase.from('projects').select('*');
+        if (projectsData) {
+          const sorted = [...projectsData].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+          _setProjects(sorted);
+        }
 
         const { data: mediaData } = await supabase.from('media').select('*').order('created_at', { ascending: false });
         if (mediaData) _setMedia(mediaData);
 
         const { data: contentData } = await supabase.from('site_content').select('*').single();
         if (contentData && contentData.content) {
-          _setSiteContent(contentData.content);
+          _setSiteContent({
+            ...INITIAL_CONTENT,
+            ...contentData.content,
+            global: { ...INITIAL_CONTENT.global, ...contentData.content.global },
+            contact: { ...INITIAL_CONTENT.contact, ...contentData.content.contact },
+            about: { ...INITIAL_CONTENT.about, ...contentData.content.about }
+          });
         }
 
         const { data: { session } } = await supabase.auth.getSession();
@@ -129,7 +141,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const setProjects = async (newProjects: Project[] | ((prev: Project[]) => Project[])) => {
     const updated = typeof newProjects === 'function' ? newProjects(projects) : newProjects;
-    _setProjects(updated);
+    const sorted = [...updated].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    _setProjects(sorted);
   };
 
   const setMedia = async (newMedia: MediaItem[] | ((prev: MediaItem[]) => MediaItem[])) => {
@@ -144,10 +157,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) {
-      console.error('Login error:', error.message);
-      return { success: false, message: error.message };
-    }
+    if (error) return { success: false, message: error.message };
     setIsAdmin(true);
     return { success: true };
   };
@@ -158,64 +168,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const uploadMedia = async (file: File) => {
-    if (!isAdmin) {
-      alert("Unauthorized: Please log in to the admin panel.");
-      return null;
-    }
-
+    if (!isAdmin) return null;
     const ext = file.name.split('.').pop()?.toLowerCase() || '';
     const fileId = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
     const isVideo = file.type.startsWith('video/') || ['mp4', 'webm'].includes(ext);
 
     try {
-      // Attempt Upload
       const { data, error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKET)
-        .upload(fileId, file, { 
-          cacheControl: '3600', 
-          upsert: true,
-          contentType: file.type || 'image/jpeg'
-        });
+        .upload(fileId, file, { cacheControl: '3600', upsert: true, contentType: file.type || 'image/jpeg' });
 
-      if (uploadError) {
-        console.error('Upload Failed Details:', uploadError);
-        
-        const isNotFound = uploadError.message.includes('not found') || (uploadError as any).status === 404;
-        const isAuthError = uploadError.message.includes('permission') || uploadError.message.includes('row-level security');
+      if (uploadError) throw uploadError;
 
-        if (isNotFound) {
-          alert(`CRITICAL ERROR: Bucket "${STORAGE_BUCKET}" not found.\n\n` +
-                `1. Open Supabase Dashboard.\n` +
-                `2. Go to Storage > New Bucket.\n` +
-                `3. Name it EXACTLY: ${STORAGE_BUCKET}\n` +
-                `4. Set it to PUBLIC.\n` +
-                `5. Double-check your API Key in index.html (it must start with 'eyJ').`);
-        } else if (isAuthError) {
-          alert("RLS ERROR: Your project is blocking the upload. Go to Storage > Policies and allow INSERT for authenticated users.");
-        } else {
-          alert(`Error: ${uploadError.message}`);
-        }
-        return null;
-      }
-
-      // Success
       const { data: { publicUrl } } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileId);
 
-      const newItem: MediaItem = {
-        id: fileId,
-        url: publicUrl,
-        name: file.name,
-        type: isVideo ? 'video' : 'image',
-        tags: ['uploaded', ext]
-      };
-
+      const newItem: MediaItem = { id: fileId, url: publicUrl, name: file.name, type: isVideo ? 'video' : 'image', tags: ['uploaded', ext] };
       await supabase.from('media').insert(newItem);
       _setMedia(prev => [newItem, ...prev]);
-      
       return publicUrl;
     } catch (err: any) {
-      console.error('System Exception:', err);
-      alert(`Unexpected Error: ${err.message}`);
+      console.error('Upload failed:', err);
       return null;
     }
   };
@@ -244,15 +216,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <DataContext.Provider value={{ 
-      projects, setProjects, 
-      media, setMedia, 
-      siteContent, setSiteContent, 
-      isAdmin, loading, 
-      login, logout, 
-      uploadMedia,
-      deleteMedia
-    }}>
+    <DataContext.Provider value={{ projects, setProjects, media, setMedia, siteContent, setSiteContent, isAdmin, loading, login, logout, uploadMedia, deleteMedia }}>
       {children}
     </DataContext.Provider>
   );

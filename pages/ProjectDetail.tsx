@@ -1,12 +1,17 @@
-import React, { useEffect } from 'react';
+
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useData } from '../context/DataContext.tsx';
-import { ArrowLeft, CheckCircle2, Download, MapPin, Building, Calendar, Info } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Download, MapPin, Building, Calendar, Info, Map as MapIcon, Loader2, ExternalLink } from 'lucide-react';
+import { GoogleGenAI } from '@google/genai';
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { projects } = useData();
   const project = projects.find(p => p.id === id);
+  
+  const [areaInsights, setAreaInsights] = useState<{ text: string; links: { title: string; uri: string }[] } | null>(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -17,8 +22,48 @@ const ProjectDetail: React.FC = () => {
       
       document.querySelector('meta[name="description"]')?.setAttribute('content', description);
       document.querySelector('meta[name="keywords"]')?.setAttribute('content', keywords);
+
+      // Fetch Area Insights automatically
+      fetchNeighborhoodInsights();
     }
   }, [id, project]);
+
+  const fetchNeighborhoodInsights = async () => {
+    if (!project) return;
+    setLoadingInsights(true);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const prompt = `Tell me about the neighborhood and nearby amenities for ${project.name} located at ${project.location}. What are the top schools, hospitals, and parks within 2km? Use Google Maps for accurate data.`;
+      
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+          tools: [{ googleMaps: {} }],
+          systemInstruction: 'You are an urban planning expert for Karachi. Provide concise neighborhood highlights and amenities based on real Google Maps data.',
+        }
+      });
+
+      const links: { title: string; uri: string }[] = [];
+      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+      if (chunks) {
+        chunks.forEach((chunk: any) => {
+          if (chunk.maps) {
+            links.push({ title: chunk.maps.title || 'View', uri: chunk.maps.uri });
+          }
+        });
+      }
+
+      setAreaInsights({
+        text: response.text || "This area features significant infrastructure growth and premium access.",
+        links: links.slice(0, 5) // Limit to top 5 links
+      });
+    } catch (err) {
+      console.error("Failed to fetch neighborhood data:", err);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
 
   if (!project) {
     return (
@@ -64,6 +109,52 @@ const ProjectDetail: React.FC = () => {
             <section>
               <h2 className="text-3xl font-bold text-white mb-6">Project Overview</h2>
               <p className="text-gray-400 text-lg leading-relaxed">{project.longDescription}</p>
+            </section>
+
+            {/* Neighborhood Insights Powered by Gemini & Google Maps */}
+            <section className="glass p-8 md:p-12 rounded-[3rem] border border-white/5 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                 <MapIcon size={200} />
+               </div>
+               <div className="flex items-center space-x-4 mb-8">
+                 <div className="w-12 h-12 bg-amber-500/10 rounded-2xl flex items-center justify-center text-amber-500">
+                    <MapIcon size={24} />
+                 </div>
+                 <div>
+                    <h2 className="text-3xl font-bold text-white">Neighborhood Insights</h2>
+                    <p className="text-xs text-amber-500 font-black uppercase tracking-[0.2em]">Real-time Maps Grounding Enabled</p>
+                 </div>
+               </div>
+
+               {loadingInsights ? (
+                 <div className="flex flex-col items-center py-12 space-y-4">
+                    <Loader2 className="animate-spin text-amber-500" size={32} />
+                    <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Querying Google Maps Infrastructure...</p>
+                 </div>
+               ) : areaInsights ? (
+                 <div className="space-y-8 relative z-10">
+                    <p className="text-gray-300 leading-relaxed text-lg">
+                      {areaInsights.text}
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      {areaInsights.links.map((link, idx) => (
+                        <a 
+                          key={idx} 
+                          href={link.uri} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center space-x-2 px-6 py-3 bg-white/5 border border-white/10 rounded-full text-xs font-black uppercase text-amber-500 hover:bg-amber-500 hover:text-white transition-all shadow-lg"
+                        >
+                          <MapPin size={14} />
+                          <span>{link.title}</span>
+                          <ExternalLink size={12} />
+                        </a>
+                      ))}
+                    </div>
+                 </div>
+               ) : (
+                 <p className="text-gray-500 italic">Location intelligence is currently offline.</p>
+               )}
             </section>
 
             {project.features && project.features.length > 0 && (

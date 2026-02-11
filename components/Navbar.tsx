@@ -67,8 +67,12 @@ const Navbar: React.FC = () => {
           onTouchEnd={endPress}
           onClick={() => pressProgress === 0 && navigate('/')}
         >
-          <div className={`w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center transition-transform ${pressProgress > 0 ? 'scale-110 shadow-lg shadow-amber-500/50' : 'group-hover:scale-110'}`}>
-            <Building2 className="text-white" size={24} />
+          <div className={`w-10 h-10 bg-amber-500 rounded-lg flex items-center justify-center transition-transform overflow-hidden ${pressProgress > 0 ? 'scale-110 shadow-lg shadow-amber-500/50' : 'group-hover:scale-110'}`}>
+            {siteContent.global.logoUrl ? (
+              <img src={siteContent.global.logoUrl} className="w-full h-full object-contain p-1.5" alt="Logo" />
+            ) : (
+              <Building2 className="text-white" size={24} />
+            )}
           </div>
           <span className="text-2xl font-extrabold tracking-tighter text-white uppercase transition-colors">
             {siteContent.global.siteName.split(' ')[0]} <span className="text-amber-500">{siteContent.global.siteName.split(' ').slice(1).join(' ')}</span>
@@ -79,21 +83,21 @@ const Navbar: React.FC = () => {
         </div>
 
         <div className="hidden md:flex items-center space-x-6">
-          <div className="flex items-center space-x-8 mr-4">
+          <div className="flex items-center space-x-10 mr-6">
             {navLinks.map((link) => (
               <Link
                 key={link.label}
                 to={link.path}
-                className={`text-sm font-black uppercase tracking-widest transition-colors hover:text-amber-500 ${isActive(link.path) ? 'text-amber-500' : 'text-gray-300'}`}
+                className={`text-sm font-black uppercase tracking-[0.15em] transition-all hover:text-amber-500 ${isActive(link.path) ? 'text-amber-500' : 'text-gray-300'}`}
               >
                 {link.label}
               </Link>
             ))}
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-5">
             <ThemeToggle />
-            <Link to="/contact" className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-3 rounded-full font-black uppercase tracking-widest text-xs transition-all transform hover:scale-105 shadow-xl shadow-amber-500/20">
-              Invest
+            <Link to="/contact" className="bg-amber-500 hover:bg-amber-600 text-white px-10 py-3 rounded-full font-black uppercase tracking-[0.15em] text-sm transition-all transform hover:scale-105 shadow-2xl shadow-amber-500/30">
+              INVEST
             </Link>
           </div>
         </div>
@@ -119,8 +123,8 @@ const Navbar: React.FC = () => {
                 {link.label}
               </Link>
             ))}
-            <Link to="/contact" onClick={() => setIsOpen(false)} className="bg-amber-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-center">
-              Invest Now
+            <Link to="/contact" onClick={() => setIsOpen(false)} className="bg-amber-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-center shadow-xl shadow-amber-500/20">
+              INVEST NOW
             </Link>
           </div>
         </div>
