@@ -32,13 +32,10 @@ const ProjectForm: React.FC = () => {
     imageUrl: '',
     gallery: [],
     features: [],
-    specs: [{ label: 'Structure', value: 'RCC Frame' }],
+    specs: [],
     paymentPlan: '',
     priceRange: '',
     completionDate: '',
-    landArea: '',
-    totalFloors: '',
-    totalUnits: '',
     seo: { title: '', description: '', keywords: '' }
   });
 
@@ -54,6 +51,22 @@ const ProjectForm: React.FC = () => {
   const handleNameChange = (val: string) => {
     const slug = val.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
     setFormData({ ...formData, name: val, slug: isEditing ? formData.slug : slug });
+  };
+
+  // Helper to get/set "virtual" fields from the specs array
+  const getVirtualSpec = (label: string) => {
+    return formData.specs?.find(s => s.label === label)?.value || '';
+  };
+
+  const setVirtualSpec = (label: string, value: string) => {
+    const newSpecs = [...(formData.specs || [])];
+    const index = newSpecs.findIndex(s => s.label === label);
+    if (index > -1) {
+      newSpecs[index] = { ...newSpecs[index], value };
+    } else {
+      newSpecs.push({ label, value });
+    }
+    setFormData({ ...formData, specs: newSpecs });
   };
 
   const handleDesktopUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -97,21 +110,17 @@ const ProjectForm: React.FC = () => {
     setFormData({ ...formData, specs: newSpecs });
   };
 
-  const addFeature = () => setFormData(prev => ({ ...prev, features: [...(prev.features || []), ''] }));
-  const removeFeature = (i: number) => setFormData(prev => ({ ...prev, features: (prev.features || []).filter((_, idx) => idx !== i) }));
-  const updateFeature = (i: number, val: string) => {
-    const newFeats = [...(formData.features || [])];
-    newFeats[i] = val;
-    setFormData({ ...formData, features: newFeats });
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const projectData = { ...formData, id: isEditing ? (id as string) : (formData.slug || Date.now().toString()) } as Project;
-    const { error } = await supabase.from('projects').upsert(projectData);
+    
+    // Create copy without virtual helper logic
+    const finalProjectData = { ...formData };
+    finalProjectData.id = isEditing ? (id as string) : (formData.slug || Date.now().toString());
+
+    const { error } = await supabase.from('projects').upsert(finalProjectData);
     if (!error) {
-      setProjects(prev => isEditing ? prev.map(p => p.id === id ? projectData : p) : [projectData, ...prev]);
+      setProjects(prev => isEditing ? prev.map(p => p.id === id ? (finalProjectData as Project) : p) : [finalProjectData as Project, ...prev]);
       navigate('/admin');
     } else {
       alert(`Database Error: ${error.message}`);
@@ -181,7 +190,7 @@ const ProjectForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* PROJECT DETAILS BOX (Narrative & Structural Metrics) */}
+              {/* PROJECT DETAILS BOX (Mapped to Specs Array internally) */}
               <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-10 shadow-2xl bg-gradient-to-br from-white/5 to-transparent">
                 <h3 className="text-xl font-bold text-white flex items-center space-x-3">
                    <FileText className="text-amber-500" size={24} />
@@ -193,19 +202,34 @@ const ProjectForm: React.FC = () => {
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                        <Ruler size={12} className="text-amber-500" /> Land Area
                     </label>
-                    <input value={formData.landArea} onChange={e => setFormData({ ...formData, landArea: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" placeholder="e.g. 500 Sq Yds" />
+                    <input 
+                      value={getVirtualSpec('Land Area')} 
+                      onChange={e => setVirtualSpec('Land Area', e.target.value)} 
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" 
+                      placeholder="e.g. 500 Sq Yds" 
+                    />
                   </div>
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                        <Layers size={12} className="text-amber-500" /> Total Floors
                     </label>
-                    <input value={formData.totalFloors} onChange={e => setFormData({ ...formData, totalFloors: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" placeholder="e.g. G + 12" />
+                    <input 
+                      value={getVirtualSpec('Total Floors')} 
+                      onChange={e => setVirtualSpec('Total Floors', e.target.value)} 
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" 
+                      placeholder="e.g. G + 12" 
+                    />
                   </div>
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                        <Home size={12} className="text-amber-500" /> Total Units
                     </label>
-                    <input value={formData.totalUnits} onChange={e => setFormData({ ...formData, totalUnits: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" placeholder="e.g. 150 Apartments" />
+                    <input 
+                      value={getVirtualSpec('Total Units')} 
+                      onChange={e => setVirtualSpec('Total Units', e.target.value)} 
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 text-white outline-none" 
+                      placeholder="e.g. 150 Apartments" 
+                    />
                   </div>
                 </div>
 
@@ -239,20 +263,23 @@ const ProjectForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Project Specifications List */}
+              {/* Project Specifications List (Filtering out virtual ones to prevent duplicates) */}
               <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-10 shadow-2xl">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-white">Project Specifications</h3>
+                  <h3 className="text-xl font-bold text-white">Additional Technical Specifications</h3>
                   <button type="button" onClick={addSpec} className="p-2 bg-amber-500 text-white rounded-lg hover:scale-110 transition-transform"><Plus size={18} /></button>
                 </div>
                 <div className="space-y-4">
-                  {formData.specs?.map((spec, i) => (
+                  {formData.specs?.filter(s => !['Land Area', 'Total Floors', 'Total Units'].includes(s.label)).map((spec, i) => (
                     <div key={i} className="flex gap-4">
-                      <input value={spec.label} onChange={e => updateSpec(i, 'label', e.target.value)} placeholder="Units" className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-white outline-none" />
+                      <input value={spec.label} onChange={e => updateSpec(i, 'label', e.target.value)} placeholder="e.g. Elevators" className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-white outline-none" />
                       <input value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} placeholder="Value" className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-white outline-none" />
                       <button type="button" onClick={() => removeSpec(i)} className="p-4 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 size={18} /></button>
                     </div>
                   ))}
+                  {formData.specs?.filter(s => !['Land Area', 'Total Floors', 'Total Units'].includes(s.label)).length === 0 && (
+                    <p className="text-gray-500 italic text-sm text-center py-4">No custom specifications added.</p>
+                  )}
                 </div>
               </div>
 

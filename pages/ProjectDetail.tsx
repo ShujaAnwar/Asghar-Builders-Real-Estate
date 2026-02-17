@@ -82,6 +82,9 @@ const ProjectDetail: React.FC = () => {
     );
   }
 
+  // Helper to extract virtual specs
+  const getVirtualVal = (label: string) => project.specs?.find(s => s.label === label)?.value;
+
   return (
     <div className="pt-24 pb-24">
       {/* Hero Banner */}
@@ -207,37 +210,37 @@ const ProjectDetail: React.FC = () => {
                   <div className="text-white font-bold text-sm">{project.type}</div>
                 </div>
 
-                {project.landArea && (
+                {getVirtualVal('Land Area') && (
                   <div className="flex justify-between items-center">
                     <div className="flex items-center text-gray-500 text-xs font-black uppercase tracking-wider">
                       <Ruler size={14} className="mr-3 text-amber-500" />
                       Land Area
                     </div>
-                    <div className="text-white font-bold text-sm">{project.landArea}</div>
+                    <div className="text-white font-bold text-sm">{getVirtualVal('Land Area')}</div>
                   </div>
                 )}
 
-                {project.totalFloors && (
+                {getVirtualVal('Total Floors') && (
                   <div className="flex justify-between items-center">
                     <div className="flex items-center text-gray-500 text-xs font-black uppercase tracking-wider">
                       <Layers size={14} className="mr-3 text-amber-500" />
                       Total Floors
                     </div>
-                    <div className="text-white font-bold text-sm">{project.totalFloors}</div>
+                    <div className="text-white font-bold text-sm">{getVirtualVal('Total Floors')}</div>
                   </div>
                 )}
 
-                {project.totalUnits && (
+                {getVirtualVal('Total Units') && (
                   <div className="flex justify-between items-center">
                     <div className="flex items-center text-gray-500 text-xs font-black uppercase tracking-wider">
                       <Home size={14} className="mr-3 text-amber-500" />
                       Units
                     </div>
-                    <div className="text-white font-bold text-sm">{project.totalUnits}</div>
+                    <div className="text-white font-bold text-sm">{getVirtualVal('Total Units')}</div>
                   </div>
                 )}
                 
-                {project.specs.map((spec, i) => (
+                {project.specs.filter(s => !['Land Area', 'Total Floors', 'Total Units'].includes(s.label)).map((spec, i) => (
                   <div key={i} className="flex justify-between items-center">
                     <div className="flex items-center text-gray-500 text-xs font-black uppercase tracking-wider">
                       <Info size={14} className="mr-3 text-amber-500" />

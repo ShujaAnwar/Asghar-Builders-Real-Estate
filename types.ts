@@ -39,9 +39,6 @@ export interface Project {
   paymentPlan?: string;
   priceRange?: string;
   completionDate?: string;
-  landArea?: string;      // New field
-  totalFloors?: string;   // New field
-  totalUnits?: string;    // New field
   displayOrder?: number;
   seo?: SEOData;
 }
