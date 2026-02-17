@@ -6,7 +6,7 @@ import { Project, ProjectStatus, ProjectType, ProjectSpec } from '../../types.ts
 import { 
   ArrowLeft, Save, Info, Image as ImageIcon, FileText, 
   Globe, Loader2, Upload, Plus, Trash2, CheckCircle2, X, Search, Cloud,
-  DollarSign, ClipboardList, Zap, Ruler, Layers, Home
+  DollarSign, ClipboardList, Zap, Ruler, Layers, Home, Monitor
 } from 'lucide-react';
 
 const ProjectForm: React.FC = () => {
@@ -16,6 +16,7 @@ const ProjectForm: React.FC = () => {
   const isEditing = !!id;
 
   const [loading, setLoading] = useState(false);
+  const [uploadingPC, setUploadingPC] = useState(false);
   const [showPicker, setShowPicker] = useState<'main' | 'gallery' | null>(null);
   const [pickerSearch, setPickerSearch] = useState('');
   
@@ -53,7 +54,6 @@ const ProjectForm: React.FC = () => {
     setFormData({ ...formData, name: val, slug: isEditing ? formData.slug : slug });
   };
 
-  // Helper to get/set "virtual" fields from the specs array
   const getVirtualSpec = (label: string) => {
     return formData.specs?.find(s => s.label === label)?.value || '';
   };
@@ -69,17 +69,21 @@ const ProjectForm: React.FC = () => {
     setFormData({ ...formData, specs: newSpecs });
   };
 
+  const triggerPCUpload = (target: 'main' | 'gallery') => {
+    setShowPicker(target); // Use this to track target during PC upload flow
+    fileInputRef.current?.click();
+  };
+
   const handleDesktopUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    setLoading(true);
+    setUploadingPC(true);
     try {
       const url = await uploadMedia(file);
       if (url) {
         if (showPicker === 'gallery') {
           setFormData(prev => ({ ...prev, gallery: [...(prev.gallery || []), url] }));
-          setShowPicker(null);
         } else {
           setFormData(prev => ({ ...prev, imageUrl: url }));
         }
@@ -88,7 +92,8 @@ const ProjectForm: React.FC = () => {
       console.error(err);
       alert("PC File Upload failed.");
     } finally {
-      setLoading(false);
+      setUploadingPC(false);
+      setShowPicker(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -110,11 +115,14 @@ const ProjectForm: React.FC = () => {
     setFormData({ ...formData, specs: newSpecs });
   };
 
+  const removeGalleryItem = (url: string) => {
+    setFormData(prev => ({ ...prev, gallery: (prev.gallery || []).filter(item => item !== url) }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     
-    // Create copy without virtual helper logic
     const finalProjectData = { ...formData };
     finalProjectData.id = isEditing ? (id as string) : (formData.slug || Date.now().toString());
 
@@ -134,6 +142,15 @@ const ProjectForm: React.FC = () => {
         <Link to="/admin" className="inline-flex items-center text-gray-500 hover:text-white mb-8 transition-colors">
           <ArrowLeft size={18} className="mr-2" /> Abort Mission
         </Link>
+
+        {/* Hidden File Input */}
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          onChange={handleDesktopUpload} 
+          accept="image/*"
+        />
 
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
           <div>
@@ -157,7 +174,6 @@ const ProjectForm: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-12">
           {activeTab === 'content' && (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Primary Node Settings */}
               <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-10 shadow-2xl">
                 <div className="grid md:grid-cols-2 gap-8">
                   <div className="space-y-3">
@@ -190,7 +206,6 @@ const ProjectForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* PROJECT DETAILS BOX (Mapped to Specs Array internally) */}
               <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-10 shadow-2xl bg-gradient-to-br from-white/5 to-transparent">
                 <h3 className="text-xl font-bold text-white flex items-center space-x-3">
                    <FileText className="text-amber-500" size={24} />
@@ -245,45 +260,6 @@ const ProjectForm: React.FC = () => {
                 </div>
               </div>
 
-              {/* Financial Box */}
-              <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-10 shadow-2xl">
-                <h3 className="text-xl font-bold text-white flex items-center space-x-3">
-                   <DollarSign className="text-amber-500" size={24} />
-                   <span>Financial Node</span>
-                </h3>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Valuation Range</label>
-                    <input value={formData.priceRange} onChange={e => setFormData({ ...formData, priceRange: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white focus:border-amber-500 outline-none" placeholder="e.g. 5 Cr - 15 Cr" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Payment Protocol</label>
-                    <textarea rows={3} value={formData.paymentPlan} onChange={e => setFormData({ ...formData, paymentPlan: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white focus:border-amber-500 outline-none resize-none" placeholder="Installment details..."></textarea>
-                  </div>
-                </div>
-              </div>
-
-              {/* Project Specifications List (Filtering out virtual ones to prevent duplicates) */}
-              <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-10 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl font-bold text-white">Additional Technical Specifications</h3>
-                  <button type="button" onClick={addSpec} className="p-2 bg-amber-500 text-white rounded-lg hover:scale-110 transition-transform"><Plus size={18} /></button>
-                </div>
-                <div className="space-y-4">
-                  {formData.specs?.filter(s => !['Land Area', 'Total Floors', 'Total Units'].includes(s.label)).map((spec, i) => (
-                    <div key={i} className="flex gap-4">
-                      <input value={spec.label} onChange={e => updateSpec(i, 'label', e.target.value)} placeholder="e.g. Elevators" className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-white outline-none" />
-                      <input value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} placeholder="Value" className="flex-1 bg-white/5 border border-white/10 rounded-xl py-4 px-6 text-white outline-none" />
-                      <button type="button" onClick={() => removeSpec(i)} className="p-4 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 size={18} /></button>
-                    </div>
-                  ))}
-                  {formData.specs?.filter(s => !['Land Area', 'Total Floors', 'Total Units'].includes(s.label)).length === 0 && (
-                    <p className="text-gray-500 italic text-sm text-center py-4">No custom specifications added.</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Global Save Trigger */}
               <div className="flex flex-col sm:flex-row gap-6 pt-12">
                  <button type="submit" disabled={loading} className="flex-grow py-6 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-[2.5rem] shadow-2xl shadow-amber-500/30 flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.02] text-xl disabled:opacity-50">
                     {loading ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
@@ -295,48 +271,144 @@ const ProjectForm: React.FC = () => {
           )}
 
           {activeTab === 'media' && (
-            <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-               <div className="glass p-12 rounded-[3rem] border border-white/5 text-center py-20">
-                  <ImageIcon className="mx-auto text-amber-500 mb-6" size={64} />
-                  <h3 className="text-2xl font-black text-white mb-2">Visual Node Management</h3>
-                  <p className="text-gray-500 mb-10">Configure billboard imagery and infrastructure gallery.</p>
+            <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+               {/* Billboard Management */}
+               <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-8">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Project Billboard</h3>
+                      <p className="text-gray-500 text-sm mt-1">The main high-resolution image for project landing pages.</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button type="button" onClick={() => triggerPCUpload('main')} disabled={uploadingPC} className="px-6 py-3 glass border border-white/10 text-amber-500 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-white/5 flex items-center gap-2">
+                        {uploadingPC ? <Loader2 className="animate-spin" size={14} /> : <Monitor size={14} />}
+                        Upload from PC
+                      </button>
+                      <button type="button" onClick={() => setShowPicker('main')} className="px-6 py-3 bg-amber-500 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-amber-600 flex items-center gap-2">
+                        <Cloud size={14} />
+                        From Library
+                      </button>
+                    </div>
+                  </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <button type="button" onClick={() => setShowPicker('main')} className="p-12 glass border border-white/10 rounded-3xl flex flex-col items-center hover:border-amber-500 transition-all">
-                       <Cloud className="text-amber-500 mb-4" size={40} />
-                       <span className="font-black uppercase tracking-widest text-xs text-white">Billboard Asset</span>
-                    </button>
-                    <button type="button" onClick={() => setShowPicker('gallery')} className="p-12 glass border border-white/10 rounded-3xl flex flex-col items-center hover:border-blue-500 transition-all">
-                       <Plus className="text-blue-500 mb-4" size={40} />
-                       <span className="font-black uppercase tracking-widest text-xs text-white">Gallery Frame</span>
-                    </button>
+                  <div className="aspect-video w-full rounded-[2.5rem] overflow-hidden glass border border-white/5 flex items-center justify-center relative group">
+                    {formData.imageUrl ? (
+                      <>
+                        <img src={formData.imageUrl} className="w-full h-full object-cover" alt="Billboard Preview" />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <button type="button" onClick={() => setFormData({...formData, imageUrl: ''})} className="p-4 bg-red-500 text-white rounded-full shadow-2xl transform scale-50 group-hover:scale-100 transition-all">
+                              <Trash2 size={24} />
+                           </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center">
+                        <ImageIcon size={48} className="text-gray-700 mx-auto mb-4" />
+                        <p className="text-gray-600 font-black uppercase text-xs tracking-widest">No Billboard Assigned</p>
+                      </div>
+                    )}
                   </div>
                </div>
+
+               {/* Gallery Management */}
+               <div className="glass p-10 rounded-[3rem] border border-white/5 space-y-8">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="text-xl font-bold text-white">Infrastructure Gallery</h3>
+                      <p className="text-gray-500 text-sm mt-1">Supplementary frames showing architectural details.</p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button type="button" onClick={() => triggerPCUpload('gallery')} disabled={uploadingPC} className="px-6 py-3 glass border border-white/10 text-amber-500 font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-white/5 flex items-center gap-2">
+                        {uploadingPC ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}
+                        Add Frame from PC
+                      </button>
+                      <button type="button" onClick={() => setShowPicker('gallery')} className="px-6 py-3 bg-amber-500 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-amber-600 flex items-center gap-2">
+                        <Cloud size={14} />
+                        Add from Library
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {formData.gallery?.map((url, i) => (
+                      <div key={i} className="aspect-square glass rounded-3xl overflow-hidden relative group border border-white/5">
+                        <img src={url} className="w-full h-full object-cover" alt="Gallery Item" />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                           <button type="button" onClick={() => removeGalleryItem(url)} className="p-3 bg-red-500 text-white rounded-xl shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-all">
+                              <Trash2 size={18} />
+                           </button>
+                        </div>
+                      </div>
+                    ))}
+                    {(formData.gallery?.length || 0) === 0 && (
+                      <div className="col-span-full py-16 text-center border-2 border-dashed border-white/5 rounded-[2.5rem]">
+                        <ImageIcon size={32} className="text-gray-700 mx-auto mb-4" />
+                        <p className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Repository empty for this landmark.</p>
+                      </div>
+                    )}
+                  </div>
+               </div>
+
+               <div className="flex flex-col sm:flex-row gap-6 pt-12">
+                 <button type="submit" disabled={loading} className="flex-grow py-6 bg-amber-500 hover:bg-amber-600 text-white font-black rounded-[2.5rem] shadow-2xl shadow-amber-500/30 flex items-center justify-center space-x-3 transition-all transform hover:scale-[1.02] text-xl disabled:opacity-50">
+                    {loading ? <Loader2 className="animate-spin" /> : <CheckCircle2 />}
+                    <span>Deploy Landmark</span>
+                 </button>
+              </div>
             </div>
           )}
         </form>
       </div>
 
-      {/* Asset Picker Modal */}
-      {showPicker && (
-        <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-4">
-          <div className="glass w-full max-w-5xl h-[80vh] rounded-[3.5rem] border border-white/10 flex flex-col overflow-hidden">
-            <header className="p-10 border-b border-white/10 flex justify-between items-center">
-              <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Media Repository</h3>
-              <button onClick={() => setShowPicker(null)} className="p-2 hover:bg-white/10 rounded-full text-white"><X /></button>
+      {/* Shared Asset Library Picker Modal */}
+      {showPicker && !uploadingPC && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/95 flex items-center justify-center p-4 animate-in fade-in duration-300">
+          <div className="glass w-full max-w-5xl h-[85vh] rounded-[3.5rem] border border-white/10 flex flex-col overflow-hidden shadow-2xl">
+            <header className="p-10 border-b border-white/10 flex justify-between items-center bg-slate-900/50">
+              <div>
+                <h3 className="text-3xl font-black text-white tracking-tighter uppercase">Infrastructure Assets</h3>
+                <p className="text-amber-500 text-[10px] font-black uppercase tracking-[0.3em] mt-2">Targeting: {showPicker === 'main' ? 'Project Billboard' : 'Gallery Frame'}</p>
+              </div>
+              <button onClick={() => setShowPicker(null)} className="p-4 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-all"><X /></button>
             </header>
-            <div className="flex-grow overflow-y-auto p-10 grid grid-cols-2 md:grid-cols-4 gap-6">
-              {media.map(item => (
+
+            <div className="p-8 border-b border-white/5 bg-slate-900/20">
+              <div className="relative">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-500" size={20} />
+                <input 
+                  value={pickerSearch}
+                  onChange={e => setPickerSearch(e.target.value)}
+                  placeholder="Scan repository for assets..." 
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-6 text-white focus:outline-none focus:border-amber-500" 
+                />
+              </div>
+            </div>
+
+            <div className="flex-grow overflow-y-auto p-10 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {media.filter(m => m.name.toLowerCase().includes(pickerSearch.toLowerCase())).map(item => (
                 <button 
                   key={item.id} 
                   type="button"
                   onClick={() => selectFromLibrary(item.url)}
-                  className="aspect-square rounded-2xl overflow-hidden border border-white/5 hover:border-amber-500 transition-all"
+                  className="group relative aspect-square rounded-3xl overflow-hidden border border-white/5 hover:border-amber-500 transition-all shadow-lg"
                 >
-                  <img src={item.url} className="w-full h-full object-cover" alt="" />
+                  <img src={item.url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Media Asset" />
+                  <div className="absolute inset-0 bg-amber-500/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
+                    <CheckCircle2 size={32} className="text-white" />
+                  </div>
                 </button>
               ))}
+              {media.length === 0 && (
+                <div className="col-span-full py-20 text-center">
+                  <ImageIcon className="mx-auto text-gray-700 mb-6 opacity-20" size={64} />
+                  <p className="text-gray-500 font-black uppercase tracking-widest text-sm">Repository Empty.</p>
+                </div>
+              )}
             </div>
+            
+            <footer className="p-10 border-t border-white/10 flex justify-center bg-slate-900/50">
+               <button onClick={() => setShowPicker(null)} className="px-12 py-5 glass text-white font-black rounded-2xl border border-white/10 hover:bg-white/5 transition-all text-xs uppercase tracking-widest">Close Browser</button>
+            </footer>
           </div>
         </div>
       )}
