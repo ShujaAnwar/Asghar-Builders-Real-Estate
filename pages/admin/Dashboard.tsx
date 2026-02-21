@@ -6,12 +6,54 @@ import {
   Plus, LayoutGrid, LogOut, 
   Trash2, Edit3, ExternalLink, Building2, 
   ShieldCheck, ImageIcon, 
-  Globe, Clock
+  Globe, Clock, ChevronUp, ChevronDown
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { projects, setProjects, logout, media } = useData();
   const navigate = useNavigate();
+
+  const handleMove = async (index: number, direction: 'up' | 'down') => {
+    const newProjects = [...projects];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex < 0 || targetIndex >= newProjects.length) return;
+
+    // Swap displayOrder values
+    const currentProject = { ...newProjects[index] };
+    const targetProject = { ...newProjects[targetIndex] };
+    
+    const tempOrder = currentProject.displayOrder || 0;
+    currentProject.displayOrder = targetProject.displayOrder || 0;
+    targetProject.displayOrder = tempOrder;
+
+    // If they have the same order, increment one
+    if (currentProject.displayOrder === targetProject.displayOrder) {
+      if (direction === 'up') {
+        currentProject.displayOrder -= 1;
+      } else {
+        currentProject.displayOrder += 1;
+      }
+    }
+
+    // Update locally
+    newProjects[index] = targetProject;
+    newProjects[targetIndex] = currentProject;
+    
+    // Sort and set
+    const sorted = [...newProjects].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+    setProjects(sorted);
+
+    // Save to Supabase
+    const { error } = await supabase.from('projects').upsert([
+      { id: currentProject.id, displayOrder: currentProject.displayOrder },
+      { id: targetProject.id, displayOrder: targetProject.displayOrder }
+    ]);
+
+    if (error) {
+      alert('Error saving order: ' + error.message);
+    }
+  };
 
   const stats = [
     { label: 'Portfolio Items', value: projects.length, icon: <Building2 />, color: 'text-blue-400' },
@@ -124,6 +166,7 @@ const Dashboard: React.FC = () => {
                 <thead>
                   <tr className="text-left text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] border-b border-white/5">
                     <th className="px-8 py-6">Identity</th>
+                    <th className="px-8 py-6">Order</th>
                     <th className="px-8 py-6">Type</th>
                     <th className="px-8 py-6">Current Status</th>
                     <th className="px-8 py-6 text-right">Management</th>
@@ -132,10 +175,10 @@ const Dashboard: React.FC = () => {
                 <tbody className="divide-y divide-white/5">
                   {projects.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="px-8 py-20 text-center text-gray-500">No projects found in database.</td>
+                      <td colSpan={5} className="px-8 py-20 text-center text-gray-500">No projects found in database.</td>
                     </tr>
                   ) : (
-                    projects.map((p) => (
+                    projects.map((p, index) => (
                       <tr key={p.id} className="hover:bg-white/5 transition-colors group">
                         <td className="px-8 py-6">
                           <div className="flex items-center space-x-5">
@@ -143,6 +186,29 @@ const Dashboard: React.FC = () => {
                             <div>
                               <div className="text-white font-bold text-lg">{p.name}</div>
                               <div className="text-xs text-gray-500 font-medium">{p.location}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md min-w-[2rem] text-center">
+                              {p.displayOrder || 0}
+                            </span>
+                            <div className="flex flex-col">
+                              <button 
+                                onClick={() => handleMove(index, 'up')} 
+                                disabled={index === 0}
+                                className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
+                              >
+                                <ChevronUp size={14} />
+                              </button>
+                              <button 
+                                onClick={() => handleMove(index, 'down')} 
+                                disabled={index === projects.length - 1}
+                                className="p-1 text-gray-500 hover:text-white disabled:opacity-20 transition-colors"
+                              >
+                                <ChevronDown size={14} />
+                              </button>
                             </div>
                           </div>
                         </td>
