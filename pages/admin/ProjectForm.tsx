@@ -37,7 +37,6 @@ const ProjectForm: React.FC = () => {
     paymentPlan: '',
     priceRange: '',
     completionDate: '',
-    displayOrder: 0,
     seo: { title: '', description: '', keywords: '' }
   });
 
@@ -125,6 +124,7 @@ const ProjectForm: React.FC = () => {
     setLoading(true);
     
     const finalProjectData = { ...formData };
+    delete (finalProjectData as any).displayOrder;
     finalProjectData.id = isEditing ? (id as string) : (formData.slug || Date.now().toString());
 
     const { error } = await supabase.from('projects').upsert(finalProjectData);
@@ -203,10 +203,6 @@ const ProjectForm: React.FC = () => {
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Completion Date</label>
                     <input value={formData.completionDate} onChange={e => setFormData({ ...formData, completionDate: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" placeholder="e.g. Q4 2026" />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Display Order</label>
-                    <input type="number" value={formData.displayOrder} onChange={e => setFormData({ ...formData, displayOrder: parseInt(e.target.value) || 0 })} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" placeholder="0" />
                   </div>
                 </div>
               </div>

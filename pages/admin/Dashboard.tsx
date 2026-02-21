@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { projects, setProjects, logout, media } = useData();
+  const { projects, setProjects, logout, media, siteContent, setSiteContent } = useData();
   const navigate = useNavigate();
 
   const handleMove = async (index: number, direction: 'up' | 'down') => {
@@ -19,40 +19,25 @@ const Dashboard: React.FC = () => {
     
     if (targetIndex < 0 || targetIndex >= newProjects.length) return;
 
-    // Swap displayOrder values
-    const currentProject = { ...newProjects[index] };
-    const targetProject = { ...newProjects[targetIndex] };
+    // Swap locally
+    const temp = newProjects[index];
+    newProjects[index] = newProjects[targetIndex];
+    newProjects[targetIndex] = temp;
     
-    const tempOrder = currentProject.displayOrder || 0;
-    currentProject.displayOrder = targetProject.displayOrder || 0;
-    targetProject.displayOrder = tempOrder;
+    // Update state
+    setProjects(newProjects);
 
-    // If they have the same order, increment one
-    if (currentProject.displayOrder === targetProject.displayOrder) {
-      if (direction === 'up') {
-        currentProject.displayOrder -= 1;
-      } else {
-        currentProject.displayOrder += 1;
+    // Save order to site_content
+    const newOrder = newProjects.map(p => p.id);
+    const updatedContent = {
+      ...siteContent,
+      global: {
+        ...siteContent.global,
+        projectOrder: newOrder
       }
-    }
-
-    // Update locally
-    newProjects[index] = targetProject;
-    newProjects[targetIndex] = currentProject;
+    };
     
-    // Sort and set
-    const sorted = [...newProjects].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-    setProjects(sorted);
-
-    // Save to Supabase
-    const { error } = await supabase.from('projects').upsert([
-      { id: currentProject.id, displayOrder: currentProject.displayOrder },
-      { id: targetProject.id, displayOrder: targetProject.displayOrder }
-    ]);
-
-    if (error) {
-      alert('Error saving order: ' + error.message);
-    }
+    await setSiteContent(updatedContent);
   };
 
   const stats = [
@@ -192,7 +177,7 @@ const Dashboard: React.FC = () => {
                         <td className="px-8 py-6">
                           <div className="flex items-center space-x-2">
                             <span className="text-xs font-mono text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md min-w-[2rem] text-center">
-                              {p.displayOrder || 0}
+                              {index + 1}
                             </span>
                             <div className="flex flex-col">
                               <button 

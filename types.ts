@@ -77,6 +77,7 @@ export interface SiteContent {
       tiktok: string;
       whatsapp: string;
     };
+    projectOrder?: string[];
   };
   home: {
     heroTitle: string;

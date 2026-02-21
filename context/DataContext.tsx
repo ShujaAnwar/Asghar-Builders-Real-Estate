@@ -99,25 +99,38 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initData = async () => {
       setLoading(true);
       try {
-        const { data: projectsData } = await supabase.from('projects').select('*');
-        if (projectsData) {
-          const sorted = [...projectsData].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-          _setProjects(sorted);
-        }
-
-        const { data: mediaData } = await supabase.from('media').select('*').order('created_at', { ascending: false });
-        if (mediaData) _setMedia(mediaData);
-
         const { data: contentData } = await supabase.from('site_content').select('*').single();
+        let currentContent = INITIAL_CONTENT;
         if (contentData && contentData.content) {
-          _setSiteContent({
+          currentContent = {
             ...INITIAL_CONTENT,
             ...contentData.content,
             global: { ...INITIAL_CONTENT.global, ...contentData.content.global },
             contact: { ...INITIAL_CONTENT.contact, ...contentData.content.contact },
             about: { ...INITIAL_CONTENT.about, ...contentData.content.about }
-          });
+          };
+          _setSiteContent(currentContent);
         }
+
+        const { data: projectsData } = await supabase.from('projects').select('*');
+        if (projectsData) {
+          const order = currentContent.global.projectOrder || [];
+          const sorted = [...projectsData].sort((a, b) => {
+            const indexA = order.indexOf(a.id);
+            const indexB = order.indexOf(b.id);
+            
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            
+            // Fallback to displayOrder if it exists (for legacy/local use) or created_at/id
+            return (a.displayOrder || 0) - (b.displayOrder || 0);
+          });
+          _setProjects(sorted);
+        }
+
+        const { data: mediaData } = await supabase.from('media').select('*').order('created_at', { ascending: false });
+        if (mediaData) _setMedia(mediaData);
 
         const { data: { session } } = await supabase.auth.getSession();
         setIsAdmin(!!session);
