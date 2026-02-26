@@ -107,6 +107,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
             ...INITIAL_CONTENT,
             ...contentData.content,
             global: { ...INITIAL_CONTENT.global, ...contentData.content.global },
+            home: { ...INITIAL_CONTENT.home, ...contentData.content.home },
             contact: { ...INITIAL_CONTENT.contact, ...contentData.content.contact },
             about: { ...INITIAL_CONTENT.about, ...contentData.content.about }
           };

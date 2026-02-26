@@ -55,7 +55,7 @@ const Counter: React.FC<CounterProps> = ({ end, suffix = '', duration = 2000 }) 
 
 const StatsSection: React.FC = () => {
   const { siteContent } = useData();
-  const stats = siteContent.home.highlights || [];
+  const stats = siteContent.home?.highlights || [];
 
   return (
     <section className="py-24 bg-slate-950 dark:bg-slate-950 light:bg-gray-50 relative border-y border-white/5 dark:border-white/5 transition-colors">

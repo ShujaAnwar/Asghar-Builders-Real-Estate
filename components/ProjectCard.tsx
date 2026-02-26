@@ -13,6 +13,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
     [ProjectStatus.RUNNING]: 'bg-green-500/20 text-green-400 border-green-500/30',
     [ProjectStatus.UPCOMING]: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
     [ProjectStatus.COMPLETED]: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+    [ProjectStatus.DRAFT]: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
   };
 
   return (
