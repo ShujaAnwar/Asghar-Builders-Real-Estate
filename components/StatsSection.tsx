@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 
+import { useData } from '../context/DataContext.tsx';
+
 interface CounterProps {
   end: number;
   suffix?: string;
@@ -52,12 +54,8 @@ const Counter: React.FC<CounterProps> = ({ end, suffix = '', duration = 2000 }) 
 };
 
 const StatsSection: React.FC = () => {
-  const stats = [
-    { label: 'Years of Experience', value: 25, suffix: '+' },
-    { label: 'Delivered Projects', value: 12, suffix: '' },
-    { label: 'Ongoing Projects', value: 5, suffix: '' },
-    { label: 'Trusted Clients', value: 300, suffix: '+' },
-  ];
+  const { siteContent } = useData();
+  const stats = siteContent.home.highlights || [];
 
   return (
     <section className="py-24 bg-slate-950 dark:bg-slate-950 light:bg-gray-50 relative border-y border-white/5 dark:border-white/5 transition-colors">
@@ -65,7 +63,7 @@ const StatsSection: React.FC = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-12">
           {stats.map((item, idx) => (
             <div key={idx} className="text-center group">
-              <Counter end={item.value} suffix={item.suffix} />
+              <Counter end={parseInt(item.value) || 0} suffix={item.suffix} />
               <div className="text-[10px] font-black text-gray-500 dark:text-gray-500 uppercase tracking-[0.4em]">
                 {item.label}
               </div>

@@ -242,6 +242,98 @@ const ContentEditor: React.FC = () => {
             </div>
           )}
 
+          {activeSection === 'home' && (
+            <div className="space-y-12 animate-in fade-in slide-in-from-right-4">
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3"><Home className="text-amber-500" /> Hero Section</h3>
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Hero Title</label>
+                    <input value={siteContent.home.heroTitle} onChange={e => handleDeepChange('home', 'heroTitle', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Hero Subtitle</label>
+                    <textarea rows={3} value={siteContent.home.heroSubtitle} onChange={e => handleDeepChange('home', 'heroSubtitle', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-8 text-white outline-none" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">
+                <h3 className="text-xl font-bold text-white flex items-center gap-3"><Layout className="text-amber-500" /> Performance Metrics (Stats)</h3>
+                <div className="grid md:grid-cols-2 gap-8">
+                  {siteContent.home.highlights.map((stat, idx) => (
+                    <div key={idx} className="p-8 bg-white/5 border border-white/10 rounded-3xl space-y-6">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest">Metric 0{idx + 1}</span>
+                        <button 
+                          onClick={() => {
+                            const updated = siteContent.home.highlights.filter((_, i) => i !== idx);
+                            handleDeepChange('home', 'highlights', updated);
+                          }}
+                          className="text-red-500 hover:text-red-400 transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Label</label>
+                          <input 
+                            value={stat.label} 
+                            onChange={e => {
+                              const updated = [...siteContent.home.highlights];
+                              updated[idx] = { ...stat, label: e.target.value };
+                              handleDeepChange('home', 'highlights', updated);
+                            }}
+                            className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 px-5 text-white outline-none text-sm"
+                          />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Value (Number)</label>
+                            <input 
+                              type="text"
+                              value={stat.value} 
+                              onChange={e => {
+                                const updated = [...siteContent.home.highlights];
+                                updated[idx] = { ...stat, value: e.target.value };
+                                handleDeepChange('home', 'highlights', updated);
+                              }}
+                              className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 px-5 text-white outline-none text-sm"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Suffix</label>
+                            <input 
+                              value={stat.suffix} 
+                              onChange={e => {
+                                const updated = [...siteContent.home.highlights];
+                                updated[idx] = { ...stat, suffix: e.target.value };
+                                handleDeepChange('home', 'highlights', updated);
+                              }}
+                              className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 px-5 text-white outline-none text-sm"
+                              placeholder="e.g. +"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <button 
+                  onClick={() => {
+                    const updated = [...siteContent.home.highlights, { label: 'New Metric', value: '0', suffix: '' }];
+                    handleDeepChange('home', 'highlights', updated);
+                  }}
+                  className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl text-gray-500 hover:text-white hover:border-amber-500/50 transition-all flex items-center justify-center space-x-2 font-bold uppercase tracking-widest text-xs"
+                >
+                  <Plus size={16} />
+                  <span>Add Performance Metric</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {activeSection === 'about' && (
             <div className="space-y-12 animate-in fade-in slide-in-from-right-4">
               <div className="glass p-12 rounded-[3rem] border border-white/10 space-y-10">

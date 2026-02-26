@@ -41,9 +41,10 @@ const INITIAL_CONTENT: SiteContent = {
     ctaPrimary: 'Explore Projects',
     ctaSecondary: 'Contact Us',
     highlights: [
-      { label: 'Years Experience', value: '25', suffix: '+' },
-      { label: 'Projects Delivered', value: '50', suffix: '' },
-      { label: 'Satisfied Families', value: '1000', suffix: '+' }
+      { label: 'Years of Experience', value: '25', suffix: '+' },
+      { label: 'Delivered Projects', value: '12', suffix: '' },
+      { label: 'Ongoing Projects', value: '5', suffix: '' },
+      { label: 'Trusted Clients', value: '300', suffix: '+' }
     ],
     whyUs: { title: 'Why Asghar Builders', items: [] },
     seo: { title: 'Home | Asghar Builders', description: 'Premium Real Estate in Karachi', keywords: 'Karachi, Construction' }
