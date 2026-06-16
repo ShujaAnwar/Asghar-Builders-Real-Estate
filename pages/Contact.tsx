@@ -134,17 +134,28 @@ const Contact: React.FC = () => {
               </div>
             </a>
 
-            {/* Map Placeholder */}
-            <div className="h-80 rounded-[3rem] overflow-hidden glass border border-white/10 shadow-2xl relative group">
-               <iframe 
+            {/* Map Container */}
+            <a 
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(siteContent.contact.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block h-80 rounded-[3rem] overflow-hidden glass border border-white/10 shadow-2xl relative group cursor-pointer"
+            >
+              <div className="absolute inset-0 z-10 bg-slate-950/20 group-hover:bg-transparent transition-colors duration-300"></div>
+              <iframe 
                 src={siteContent.contact.mapEmbedUrl} 
-                className="w-full h-full grayscale opacity-60 group-hover:opacity-80 group-hover:grayscale-0 transition-all duration-700"
+                className="w-full h-full grayscale opacity-60 group-hover:opacity-80 group-hover:grayscale-0 transition-all duration-700 pointer-events-none"
                 style={{ border: 0 }} 
                 allowFullScreen={true} 
                 loading="lazy">
               </iframe>
-              <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-slate-950/40 to-transparent"></div>
-            </div>
+              
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent z-10 flex items-end p-8">
+                <span className="text-white text-xs font-black tracking-widest uppercase bg-amber-500 hover:bg-amber-600 shadow-xl shadow-amber-500/20 px-5 py-3 rounded-xl border border-white/10 transform translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+                  Open in Google Maps
+                </span>
+              </div>
+            </a>
           </div>
         </div>
       </div>

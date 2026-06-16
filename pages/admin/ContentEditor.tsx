@@ -166,11 +166,22 @@ const ContentEditor: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Office Headquarters Address</label>
-                  <div className="relative">
-                    <MapPin className="absolute left-6 top-6 text-gray-500" size={18} />
-                    <textarea rows={3} value={siteContent.contact.address} onChange={e => handleDeepChange('contact', 'address', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-white outline-none" />
+                <div className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Office Headquarters Address</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-6 top-6 text-gray-500" size={18} />
+                      <textarea rows={3} value={siteContent.contact.address} onChange={e => handleDeepChange('contact', 'address', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-white outline-none" />
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">Google Maps Embed URL</label>
+                    <div className="relative">
+                      <Navigation className="absolute left-6 top-6 text-gray-500" size={18} />
+                      <textarea rows={3} value={siteContent.contact.mapEmbedUrl} onChange={e => handleDeepChange('contact', 'mapEmbedUrl', e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pl-16 pr-8 text-white outline-none font-mono text-xs" placeholder="https://www.google.com/maps/embed..." />
+                    </div>
+                    <p className="text-[10px] text-gray-500 px-1">Paste the iframe 'src' URL from Google Maps Share menu under 'Embed a map'.</p>
                   </div>
                 </div>
               </div>
