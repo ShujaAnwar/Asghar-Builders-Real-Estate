@@ -1,12 +1,16 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useData } from '../context/DataContext.tsx';
-import { Maximize2, X, Building2, MapPin, LayoutGrid, Filter } from 'lucide-react';
+import { Maximize2, X, Building2, MapPin, LayoutGrid, Filter, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 const Gallery: React.FC = () => {
   const { media, projects } = useData();
   const [activeFilter, setActiveFilter] = useState<string>('All');
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
   useEffect(() => {
     document.title = "Visual Gallery | Asghar Builders";
@@ -51,6 +55,45 @@ const Gallery: React.FC = () => {
   const displayedGalleries = activeFilter === 'All' 
     ? groupedGalleries 
     : groupedGalleries.filter(g => g.name === activeFilter);
+
+  const allVisibleImages = useMemo(() => {
+    return displayedGalleries.flatMap(g => g.images);
+  }, [displayedGalleries]);
+
+  const openLightbox = (index: number) => {
+    setCurrentImgIndex(index);
+    setDirection(0);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const nextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setDirection(1);
+    setCurrentImgIndex((prev) => (prev + 1) % allVisibleImages.length);
+  };
+
+  const prevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setDirection(-1);
+    setCurrentImgIndex((prev) => (prev - 1 + allVisibleImages.length) % allVisibleImages.length);
+  };
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'Escape') closeLightbox();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, currentImgIndex, allVisibleImages]);
 
   return (
     <div className="pt-32 pb-24 min-h-screen bg-white dark:bg-slate-950">
@@ -122,7 +165,12 @@ const Gallery: React.FC = () => {
                   <div 
                     key={img.id} 
                     className="group relative aspect-[4/5] rounded-2xl overflow-hidden bg-slate-100 dark:bg-white/5 p-1 cursor-pointer transition-all duration-500 hover:shadow-2xl hover:shadow-amber-500/10"
-                    onClick={() => setSelectedImage(img.url)}
+                    onClick={() => {
+                      const idx = allVisibleImages.findIndex(item => item.id === img.id);
+                      if (idx !== -1) {
+                        openLightbox(idx);
+                      }
+                    }}
                   >
                     <img 
                       src={img.url} 
@@ -157,31 +205,125 @@ const Gallery: React.FC = () => {
         )}
       </div>
 
-      {/* Lightbox */}
-      {selectedImage && (
-        <div 
-          className="fixed inset-0 z-[100] bg-slate-950/98 flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300"
-          onClick={() => setSelectedImage(null)}
-        >
-          <button 
-            className="absolute top-8 right-8 text-white hover:text-amber-500 transition-all duration-300 p-2 hover:rotate-90"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedImage(null);
-            }}
+      {/* Lightbox / Slider Modal */}
+      <AnimatePresence>
+        {lightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeLightbox}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-slate-950/95 backdrop-blur-2xl p-4 sm:p-8"
           >
-            <X size={40} />
-          </button>
-          <div className="relative max-w-5xl w-full h-full flex items-center justify-center">
-            <img 
-              src={selectedImage} 
-              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl ring-1 ring-white/10" 
-              alt="Preview" 
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
-        </div>
-      )}
+            {/* Top Toolbar */}
+            <div className="w-full max-w-7xl flex justify-between items-center z-10">
+              <div className="flex flex-col text-left">
+                <span className="text-amber-500 text-xs font-bold uppercase tracking-widest">
+                  {allVisibleImages[currentImgIndex]?.project}
+                </span>
+                <span className="text-white font-bold text-sm hidden sm:inline-block">
+                  {allVisibleImages[currentImgIndex]?.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-gray-400 font-mono text-sm">
+                  <span className="text-white font-bold">{currentImgIndex + 1}</span> / {allVisibleImages.length}
+                </div>
+                <button
+                  onClick={closeLightbox}
+                  className="p-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full transition-all hover:scale-105 shadow-lg flex items-center justify-center cursor-pointer"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Main Stage */}
+            <div className="relative w-full max-w-5xl flex-1 flex items-center justify-center overflow-hidden my-4">
+              {/* Left Button */}
+              <button
+                onClick={prevImage}
+                className="absolute left-2 sm:left-4 z-10 p-4 bg-black/40 border border-white/5 hover:border-amber-500/20 hover:bg-amber-500 text-white rounded-2xl transition-all hover:scale-110 shadow-2xl flex items-center justify-center cursor-pointer group"
+              >
+                <ChevronLeft size={24} className="group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+
+              {/* Slider Image Container */}
+              <div className="relative w-full h-full max-h-[60vh] flex items-center justify-center p-2 sm:p-6" onClick={(e) => e.stopPropagation()}>
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.img
+                    key={currentImgIndex}
+                    custom={direction}
+                    variants={{
+                      enter: (direction: number) => ({
+                        x: direction > 0 ? 100 : -100,
+                        opacity: 0,
+                        scale: 0.95
+                      }),
+                      center: {
+                        zIndex: 1,
+                        x: 0,
+                        opacity: 1,
+                        scale: 1,
+                        transition: {
+                          x: { type: "spring", stiffness: 300, damping: 30 },
+                          opacity: { duration: 0.2 },
+                          scale: { duration: 0.2 }
+                        }
+                      },
+                      exit: (direction: number) => ({
+                        zIndex: 0,
+                        x: direction < 0 ? 100 : -100,
+                        opacity: 0,
+                        scale: 0.95,
+                        transition: {
+                          x: { type: "spring", stiffness: 300, damping: 30 },
+                          opacity: { duration: 0.2 },
+                          scale: { duration: 0.2 }
+                        }
+                      })
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    src={allVisibleImages[currentImgIndex]?.url}
+                    alt={allVisibleImages[currentImgIndex]?.name}
+                    className="max-h-[60vh] max-w-full object-contain rounded-[2rem] shadow-[0_0_80px_-10px_rgba(0,0,0,0.8)] select-none border border-white/5 bg-slate-900/50"
+                  />
+                </AnimatePresence>
+              </div>
+
+              {/* Right Button */}
+              <button
+                onClick={nextImage}
+                className="absolute right-2 sm:right-4 z-10 p-4 bg-black/40 border border-white/5 hover:border-amber-500/20 hover:bg-amber-500 text-white rounded-2xl transition-all hover:scale-110 shadow-2xl flex items-center justify-center cursor-pointer group"
+              >
+                <ChevronRight size={24} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+
+            {/* Thumbnail Strip */}
+            <div className="w-full max-w-3xl overflow-x-auto no-scrollbar py-4 px-2 flex justify-start sm:justify-center items-center space-x-3 z-10" onClick={(e) => e.stopPropagation()}>
+              {allVisibleImages.map((img, idx) => (
+                <button
+                  key={img.id}
+                  onClick={() => {
+                    setDirection(idx > currentImgIndex ? 1 : -1);
+                    setCurrentImgIndex(idx);
+                  }}
+                  className={`relative h-16 aspect-video shrink-0 rounded-xl overflow-hidden transition-all duration-300 transform select-none cursor-pointer ${
+                    idx === currentImgIndex
+                      ? 'border-2 border-amber-500 scale-105'
+                      : 'border border-white/10 opacity-40 hover:opacity-100 hover:scale-102'
+                  }`}
+                >
+                  <img src={img.url} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
