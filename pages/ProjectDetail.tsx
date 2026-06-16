@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useData } from '../context/DataContext.tsx';
-import { ArrowLeft, CheckCircle2, Download, MapPin, Building, Calendar, Info, Map as MapIcon, Loader2, ExternalLink, Ruler, Layers, Home, Search } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Download, MapPin, Building, Calendar, Info, Map as MapIcon, Loader2, ExternalLink, Ruler, Layers, Home, Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
+import { motion, AnimatePresence } from 'motion/react';
 
 const ProjectDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,6 +13,49 @@ const ProjectDetail: React.FC = () => {
   
   const [areaInsights, setAreaInsights] = useState<{ text: string; links: { title: string; uri: string }[] } | null>(null);
   const [loadingInsights, setLoadingInsights] = useState(false);
+
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [currentImgIndex, setCurrentImgIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
+
+  const allImages = project
+    ? [project.imageUrl, ...(project.gallery || [])].filter(Boolean)
+    : [];
+
+  const openLightbox = (index: number) => {
+    setCurrentImgIndex(index);
+    setDirection(0);
+    setLightboxOpen(true);
+  };
+
+  const closeLightbox = () => {
+    setLightboxOpen(false);
+  };
+
+  const nextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setDirection(1);
+    setCurrentImgIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setDirection(-1);
+    setCurrentImgIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') nextImage();
+      if (e.key === 'ArrowLeft') prevImage();
+      if (e.key === 'Escape') closeLightbox();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, currentImgIndex, allImages]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -88,14 +132,21 @@ const ProjectDetail: React.FC = () => {
   return (
     <div className="pt-24 pb-24">
       {/* Hero Banner */}
-      <div className="relative h-[60vh] min-h-[500px] overflow-hidden">
+      <div 
+        onClick={() => openLightbox(0)}
+        className="relative h-[60vh] min-h-[500px] overflow-hidden cursor-zoom-in group/hero"
+      >
         <img 
           src={project.imageUrl} 
           alt={project.name}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover transition-transform duration-700 group-hover/hero:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
-        <div className="absolute bottom-12 left-0 w-full">
+        {/* Subtle magnifying glass hover indicator */}
+        <div className="absolute top-6 right-6 p-3 bg-black/40 backdrop-blur-md border border-white/10 rounded-full opacity-0 group-hover/hero:opacity-100 transition-opacity duration-300 flex items-center justify-center text-white">
+          <Search size={18} />
+        </div>
+        <div className="absolute bottom-12 left-0 w-full" onClick={(e) => e.stopPropagation()}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <Link to="/projects" className="inline-flex items-center text-amber-500 font-bold mb-6 hover:translate-x-[-4px] transition-transform">
               <ArrowLeft size={20} className="mr-2" />
@@ -187,8 +238,17 @@ const ProjectDetail: React.FC = () => {
                 <h2 className="text-3xl font-bold text-white mb-8">Visual Journey</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {project.gallery.map((img, i) => (
-                    <div key={i} className="aspect-video rounded-[2rem] overflow-hidden glass p-1 transition-transform hover:scale-[1.02] cursor-pointer">
+                    <div 
+                      key={i} 
+                      onClick={() => openLightbox(i + 1)}
+                      className="group/item aspect-video rounded-[2rem] overflow-hidden glass p-1 transition-transform hover:scale-[1.02] cursor-zoom-in relative"
+                    >
                       <img src={img} alt={`Gallery ${i}`} className="w-full h-full object-cover rounded-[1.8rem]" />
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/item:opacity-100 transition-opacity flex items-center justify-center rounded-[1.8rem]">
+                        <div className="p-3 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-white">
+                          <Search size={18} />
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -280,6 +340,116 @@ const ProjectDetail: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox / Slider Modal */}
+      <AnimatePresence>
+        {lightboxOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeLightbox}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-between bg-slate-950/95 backdrop-blur-2xl p-4 sm:p-8"
+          >
+            {/* Top Toolbar */}
+            <div className="w-full max-w-7xl flex justify-between items-center z-10">
+              <div className="text-gray-400 font-mono text-sm">
+                <span className="text-white font-bold">{currentImgIndex + 1}</span> / {allImages.length}
+              </div>
+              <button
+                onClick={closeLightbox}
+                className="p-3 bg-white/5 border border-white/10 hover:bg-white/10 text-white rounded-full transition-all hover:scale-105 shadow-lg flex items-center justify-center cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Main Stage */}
+            <div className="relative w-full max-w-5xl flex-1 flex items-center justify-center overflow-hidden my-4">
+              {/* Left Button */}
+              <button
+                onClick={prevImage}
+                className="absolute left-2 sm:left-4 z-10 p-4 bg-black/40 border border-white/5 hover:border-amber-500/20 hover:bg-amber-500 text-white rounded-2xl transition-all hover:scale-110 shadow-2xl flex items-center justify-center cursor-pointer group"
+              >
+                <ChevronLeft size={24} className="group-hover:-translate-x-0.5 transition-transform" />
+              </button>
+
+              {/* Slider Image Container */}
+              <div className="relative w-full h-full max-h-[60vh] flex items-center justify-center p-2 sm:p-6" onClick={(e) => e.stopPropagation()}>
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                  <motion.img
+                    key={currentImgIndex}
+                    custom={direction}
+                    variants={{
+                      enter: (direction: number) => ({
+                        x: direction > 0 ? 100 : -100,
+                        opacity: 0,
+                        scale: 0.95
+                      }),
+                      center: {
+                        zIndex: 1,
+                        x: 0,
+                        opacity: 1,
+                        scale: 1,
+                        transition: {
+                          x: { type: "spring", stiffness: 300, damping: 30 },
+                          opacity: { duration: 0.2 },
+                          scale: { duration: 0.2 }
+                        }
+                      },
+                      exit: (direction: number) => ({
+                        zIndex: 0,
+                        x: direction < 0 ? 100 : -100,
+                        opacity: 0,
+                        scale: 0.95,
+                        transition: {
+                          x: { type: "spring", stiffness: 300, damping: 30 },
+                          opacity: { duration: 0.2 },
+                          scale: { duration: 0.2 }
+                        }
+                      })
+                    }}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    src={allImages[currentImgIndex]}
+                    alt={`Slider view ${currentImgIndex}`}
+                    className="max-h-[60vh] max-w-full object-contain rounded-[2rem] shadow-[0_0_80px_-10px_rgba(0,0,0,0.8)] select-none border border-white/5 bg-slate-900/50"
+                  />
+                </AnimatePresence>
+              </div>
+
+              {/* Right Button */}
+              <button
+                onClick={nextImage}
+                className="absolute right-2 sm:right-4 z-10 p-4 bg-black/40 border border-white/5 hover:border-amber-500/20 hover:bg-amber-500 text-white rounded-2xl transition-all hover:scale-110 shadow-2xl flex items-center justify-center cursor-pointer group"
+              >
+                <ChevronRight size={24} className="group-hover:translate-x-0.5 transition-transform" />
+              </button>
+            </div>
+
+            {/* Thumbnail Strip */}
+            <div className="w-full max-w-3xl overflow-x-auto no-scrollbar py-4 px-2 flex justify-start sm:justify-center items-center space-x-3 z-10" onClick={(e) => e.stopPropagation()}>
+              {allImages.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => {
+                    setDirection(idx > currentImgIndex ? 1 : -1);
+                    setCurrentImgIndex(idx);
+                  }}
+                  className={`relative h-16 aspect-video shrink-0 rounded-xl overflow-hidden transition-all duration-300 transform select-none cursor-pointer ${
+                    idx === currentImgIndex
+                      ? 'border-2 border-amber-500 scale-105'
+                      : 'border border-white/10 opacity-40 hover:opacity-100 hover:scale-102'
+                  }`}
+                >
+                  <img src={img} alt={`Thumb ${idx}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
