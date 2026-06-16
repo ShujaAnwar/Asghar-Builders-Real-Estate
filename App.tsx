@@ -9,6 +9,8 @@ import ProjectDetail from './pages/ProjectDetail.tsx';
 import About from './pages/About.tsx';
 import Contact from './pages/Contact.tsx';
 import Gallery from './pages/Gallery.tsx';
+import PrivacyPolicy from './pages/PrivacyPolicy.tsx';
+import TermsOfEngagement from './pages/TermsOfEngagement.tsx';
 import ChatBot from './components/ChatBot.tsx';
 import ScrollToTopButton from './components/ScrollToTopButton.tsx';
 
@@ -64,6 +66,8 @@ const App: React.FC = () => {
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfEngagement />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

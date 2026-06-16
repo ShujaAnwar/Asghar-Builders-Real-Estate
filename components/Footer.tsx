@@ -149,8 +149,8 @@ const Footer: React.FC = () => {
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center text-[10px] font-bold text-gray-500 uppercase tracking-widest">
           <p>© 2024 {siteContent.global.siteName}. Strategic Real Estate Operations.</p>
           <div className="flex space-x-8 mt-4 md:mt-0">
-            <a href="#" className="hover:text-white transition-colors">Privacy Protocols</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Engagement</a>
+            <Link to="/privacy" className="hover:text-white transition-colors">Privacy Protocols</Link>
+            <Link to="/terms" className="hover:text-white transition-colors">Terms of Engagement</Link>
           </div>
         </div>
       </div>
